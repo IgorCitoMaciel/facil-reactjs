@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Gulzar&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  outline: 0;
+}
+
+.react-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+
+  display: flex;
+  /* flex-direction: row; */
+  align-items: center;
+  justify-content: center;
+}
+
+.react-modal-content {
+  width: 100%;
+  max-width: 576px;
+  background-color: #f5f5f5;
+  padding: 3rem;
+  position: relative;
+  border-radius: 0.25rem;
+  left: 8.4rem;
+
+}
+
+.react-modal-content2 {
+  width: 100%;
+  max-width: 990px;
+  height: 100%;
+  max-height: 650px;
+  background-color: #f5f5f5;
+  padding: 3rem;
+  padding-bottom: 1rem;
+  position: relative;
+  border-radius: 0.25rem;
+  left: 8.4rem;
+
+}
+
+.ReactModal__Overlay {
+  opacity: 0;
+  transition: opacity 500ms ease-in-out;
+}
+
+.ReactModal__Overlay--after-open{
+  opacity: 1;
+}
+
+.ReactModal__Overlay--before-close{
+  opacity: 0;
+}
+
+.react-modal-close {
+  position: absolute;
+  right: 1.5rem;
+  top: 1.5rem;
+  border: 0;
+  background: transparent;
+  padding: 4px 7px;
+  border-radius: 0.2rem;
+  transition: all 0.3s;
+
+}
+
+.react-modal-close:hover {
+  cursor: pointer;
+  filter: brightness(0.9);
+  background-color: #f5f5f5;
+}
+
+.sidebar-header {
+  padding-top: 2.4rem;
+  padding-bottom: 2.4rem;
+  margin-bottom: 0.02rem;
+  background: #1b2330;
+  /* height: auto; */
+
+}
+
+
+#header .pro-sidebar-inner {
+  /* background-color: #13c; */
+  box-shadow: 0.5px 0.866px 2px 0px rgba(0, 0, 0, 0.15);
+}
+
+.pro-sidebar .pro-menu {
+  padding-top: 0px !important;
+}
+
+#header .pro-menu shaped square inner-submenu-arrows {
+  padding: 0;
+}
+
+#header .pro-sidebar {
+  height: 100vh;
+}
+
+#header .pro-sidebar-layout {
+  color: #d9d9d9d9;
+  font-family: "Roboto", sans-serif;
+}
+
+#header  .pro-icon-wrapper {
+  background-color: transparent;
+}
+
+#textMenu {
+  color: #d9d9d9d9;
+  font-size: 1rem;
+  font-family: "Roboto", sans-serif;
+  margin-bottom: 2rem;
+}
+
+
+
+
+
+
+
+
