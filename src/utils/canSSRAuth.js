@@ -8,7 +8,7 @@ export function canSSRAuth(fn){
   return async (ctx) => {
     const cookies = parseCookies(ctx);
 
-    const token = cookies['@nextauth.token']
+    const token = cookies['@facil.token']
     
     // Se o cara tentar acessar a pagina, porem tendo já um login salvo, redirecionamos
     if(!token){     
@@ -23,7 +23,7 @@ export function canSSRAuth(fn){
       return await fn(ctx);
     }catch(err){
       if(err){
-        destroyCookie(ctx, '@nextauth.token');
+        destroyCookie(ctx, '@facil.token');
         return {
           redirect:{
             destination: '/',

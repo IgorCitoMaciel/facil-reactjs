@@ -1,7 +1,8 @@
 import React from "react";
 import { Container, ContentArea, Title } from "./styles";
 import SideBar from "../../components/sideBar";
-import FadeLoader from "react-spinners/BeatLoader"
+import FadeLoader from "react-spinners/BeatLoader";
+import { canSSRAuth } from "../../utils/canSSRAuth";
 
 export default function Ateste() {
   return (
@@ -32,3 +33,10 @@ export default function Ateste() {
     </Container>
   )
 }
+
+export const getServerSideProps = canSSRAuth(async (ctx) => {
+
+  return {
+    props: {}
+  }
+})

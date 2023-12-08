@@ -1,34 +1,34 @@
-import axios,{ AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { parseCookies } from "nookies";
-import { AuthTokenError}  from "./erros/AuthTokenError";
 import { signOut } from "../contexts/AuthContext";
 
-export function setupAPIClient(ctx = undefined){
-  let cookies = parseCookies(ctx);
+export function setupAPIClient(ctx = undefined) {
 
+  const cookies = parseCookies(ctx);
   const api = axios.create({
-    baseURL:'https://app-facil-1cc4efc41cdc.herokuapp.com',
-    //baseURL:'http://localhost:3333',
-    headers:{
-      Authorization: `Bearer${cookies['@nextauth.token']}`     
-    } 
-  })
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    headers: {
+      Authorization: `Bearer ${cookies['@facil.token']}`
+    }
+  });
 
-  api.interceptors.response.use(response => {
+  api.interceptors.response.use((response) => {
+    console.log(response);
     return response;
   }, (error) => {
-    if(error.response.status === 401){
-      // qualquer erro 401 devemos deslogar o usuario
-      if(typeof window !== undefined){
-        // chamar a funcao para deslogar o usuario
+    if (error.response.status === 401) {
+      console.log(error.response.status);
+      if (typeof window === 'undefined') {
+        // deslogar o usuario
         signOut();
-      }else{
-        return Promise.reject(new AuthTokenError())
+
+      } else {
+        return Promise.reject(new Error('Unauthorized, error with authentication token'));
       }
     }
 
     return Promise.reject(error);
-  })
 
+  });
   return api;
 }
