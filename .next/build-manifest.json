@@ -15,10 +15,10 @@
     "static/development/_middlewareManifest.js"
   ],
   "pages": {
-    "/Fornecedor/ListarFornecedor": [
+    "/Insumo/ListarInsumo": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/Fornecedor/ListarFornecedor.js"
+      "static/chunks/pages/Insumo/ListarInsumo.js"
     ],
     "/_app": [
       "static/chunks/webpack.js",
