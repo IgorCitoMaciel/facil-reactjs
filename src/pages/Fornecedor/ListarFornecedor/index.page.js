@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Load } from "../../../components/load";
-import axios from "axios";
 import Image from "next/image";
 import imgNotFound from '../../../../public/not.png';
 import SideBar from "../../../components/sideBar";
 import { canSSRAuth } from "../../../utils/canSSRAuth";
-import { ModalDocumentoNovo } from "../../../components/modalDocumentoNovo";
-import { ModalDocEdit } from "../../../components/modalDocEdit";
-import { ModalFornecedor } from "../../../components/modalFornecedor";
-import { ModalFornecedorEdit } from "../../../components/modalFornecedorEdit";
+// import { ModalDocumentoNovo } from "../../../components/modalDocumentoNovo";
+// import { ModalDocEdit } from "../../../components/modalDocEdit";
+import { ModalFornecedor } from "../components/modalFornecedor";
+import { ModalFornecedorEdit } from "../components/modalFornecedorEdit";
 import { AuthContext } from "../../../contexts/AuthContext";
-import { cepMask, cnpjMask } from "../../../components/mask";
+// import { cepMask, cnpjMask } from "../../../components/mask";
+import { api } from "../../../services/apiClient";
 
 import {
   Container,
@@ -29,6 +29,7 @@ import {
   BtnCriar,
   BtnText,
 } from "./styles";
+import { Alert } from "@mui/material";
 
 
 export default function Documento() {
@@ -77,22 +78,20 @@ export default function Documento() {
 
   async function listagemFornecedor() {
     setDomLoaded(true);
-    await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_providers/')
-      .then(async function (response) {
-        if (response.status == 200) {
-          setListaFornecedor(response.data.list_providers);
-          //setListaFornecedor(response.data.)
-          setDomLoaded(false);
-        }
-      })
-      .catch(function (error) {
-        console.log('MEU ERRO Listagem =', error);
-        Alert.alert('Atenção', 'Erro.')
-        setDomLoaded(false);
-      }).finally(() => {
-        setDomLoaded(false);
-      });
+    try{
+      const response =  await api.get('/list-fornecedor')
+      console.log('MEU RESPONSE', response.data)
+      setListaFornecedor(response.data);
+      setDomLoaded(false);
+
+    }catch(err){
+      console.log('MEU ERRO Listagem =', err);
+      window.alert('Atenção', 'Erro.')
+      setDomLoaded(false);
+    }
   }
+
+  console.log('Lista Fornecedor', listaFornecedor);
 
 
 
@@ -158,7 +157,7 @@ export default function Documento() {
               <div style={{ overflow: "auto", display: "flex", flexDirection: "column" }}>
                 <AreaContainerCampos>
                   {
-                    listaFornecedor.length ? (
+                    listaFornecedor?.length ? (
                       <Table>
                         <thead>
                           <Trr>

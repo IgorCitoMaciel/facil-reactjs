@@ -39,8 +39,10 @@ export function AuthProvider({ children }) {
   // }
 
   // useEffect(() => {
-
-  //   loadStorage();
+  //   const { '@facil.token': token } = parseCookies();
+  //   if(token){
+  //   }
+  //   //loadStorage();
 
   // }, [])
 
@@ -66,9 +68,7 @@ export function AuthProvider({ children }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}` // a api utilizara nosso token
       // Router.push('/CentroCusto/OrdemCompra')
 
-      console.log('Redirecionando...'); // Adicionado console.log
       Router.push('/Ateste')
-      console.log('Redirecionamento concluído.'); // Adicionado console.log
 
       // toast.success('Logado com sucesso!')
     } catch (err) {
@@ -76,25 +76,6 @@ export function AuthProvider({ children }) {
 
     }
   }
-
-  // async function SignIn({ email, password}) {
-
-  //   let data = {
-  //     email: email,
-  //     password: password,
-  //   }
-  //   await axios.post('http://localhost:3333/session', data)
-  //     .then(async function (response) {
-  //       if (response.status == 200) {
-  //         console.log("caiu nos 200", response.data)
-  //       }
-  //     })
-  //     .catch(function (error) {
-  //       console.log('MEU ERRO Listagem =', error);
-  //     })
-  // }
-
-
 
   return (
     <AuthContext.Provider value={{ user, load, SignIn, signOut }}>
