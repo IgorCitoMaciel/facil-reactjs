@@ -1,17 +1,12 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Load } from "../../../components/load";
-import axios from "axios";
 import Image from "next/image";
 import imgNotFound from '../../../../public/not.png';
 import SideBar from "../../../components/sideBar";
 import { canSSRAuth } from "../../../utils/canSSRAuth";
-// import { ModalDocumentoNovo } from "../../../components/modalDocumentoNovo";
-// import { ModalDocEdit } from "../../../components/modalDocEdit";
-// import { ModalFornecedor } from "../../../components/modalFornecedor";
-// import { ModalFornecedorEdit } from "../../../components/modalFornecedorEdit";
 import { AuthContext } from "../../../contexts/AuthContext";
-import { ModalInsumo } from "../../../components/modalInsumoNovo";
-import { ModalInsumoEdit } from "../../../components/modalInsumoEdit";
+import { ModalInsumo } from "../components/modalInsumoNovo";
+import { ModalInsumoEdit } from "../components/modalInsumoEdit";
 
 import {
   Container,
@@ -30,6 +25,7 @@ import {
   BtnCriar,
   BtnText,
 } from "./styles";
+import { api } from "../../../services/apiClient";
 
 
 export default function Documento() {
@@ -69,36 +65,24 @@ export default function Documento() {
 
   async function listagemInsumo() {
     setDomLoaded(true);
-    await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_insumos/')
-      .then(async function (response) {
-        if (response.status == 200) {
-          setListaInsumo(response.data.list_insumos);
-          setDomLoaded(false);
-        }
-      })
-      .catch(function (error) {
-        console.log('MEU ERRO Listagem Insumo =', error); 
+    try{
+      const response = await api.get('/list-insumo'); 
+      console.log("response insumo", response.data)  
+        setListaInsumo(response.data);
         setDomLoaded(false);
-      }).finally(() => {
-        setDomLoaded(false);
-      });
+      
+
+    }catch(error){
+      console.log('MEU ERRO Listagem Insumo =', error); 
+      setDomLoaded(false);
+    }
   }
 
-  // console.log('Lista Insumo', listaInsumo)
 
   function handleOpenModal() {
     setIsAddCentroResultadoModal(true);
     console.log('chamou handleOpen')
   }
-
-  // function handleCloseModal() {
-  //   setIsAddCentroResultadoModal(false);
-  // }
-
-  // function handleOpenAddCentroResultadoModal() {
-  //   setIsAddCentroResultadoModal(true);
-  //   console.log('chamou handleOpen')
-  // }
 
   function handleCloseAddCentroResultadoModal() {
     setIsAddCentroResultadoModal(false);
