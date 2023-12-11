@@ -8,28 +8,24 @@ import {
   InputModalOc,
   BtnEditar,
 } from "./styles";
+import { api } from "../../services/apiClient";
 
 
 export function ModalCrEdit(props) {
 
-  console.log('Editar---',props.idCr, props.nomeCr ,props.dataVencimento)
+  //console.log('Editar---', props.idCr, props.nomeCr, props.dataVencimento)
 
   async function deleteCr(event) {
     event.preventDefault()
-    const data = {
-      id: props.idCr,
-      name: props.nomeCr,
-    }
-
-   const result =  await axios.delete('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/delete_result_center/', { data })
+    const id = props.idCr
 
     try {
-      console.log('caiu aqui no DeleteCr', result) 
+      const result = await api.delete(`remove-centro-resultado?id=${id}`)
       props.handleCloseAddCentroResultadoModal();
-      toast.success('Centro resultado deletado com sucesso!');     
+      toast.success('Centro resultado deletado com sucesso!');
     } catch (error) {
       console.log('MEU ERRO DeleteCr =', error);
-      toast.error('Erro ao deletar centro de resultado!');      
+      toast.error('Erro ao deletar centro de resultado!');
     }
   }
 
@@ -37,24 +33,23 @@ export function ModalCrEdit(props) {
   async function editCr(event) {
     event.preventDefault()
     const data = {
-      id: props.idCr,
+      id: Number(props.idCr),
       name: props.nomeCr,
-      due_date: props.dataVencimento
+      due_date: props.dataVencimento.split('-').reverse().join('-'),
     }
-    console.log('passei aqui')
+    console.log('data editCr', data)
 
-    const result = await axios.put('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/edit_result_center/',  data)
+    //const result = await axios.put('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/edit_result_center/', data)
 
-      try {
-        console.log('caiu aqui no EditCr', result);
-        props.handleCloseAddCentroResultadoModal();
-        toast.success('Centro Resultado editado com sucesso!');
-        
-      } catch (error) {
-        console.log('MEU ERRO EditCr =', error);
-        toast.error('Erro ao editar centro de resultado!');
-        
-      }
+    try {
+      const response = await api.put('/update-centro-resultado', data)
+      props.handleCloseAddCentroResultadoModal();
+      toast.success('Centro Resultado editado com sucesso!');
+
+    } catch (error) {
+      toast.error('Erro ao editar centro de resultado!');
+
+    }
   }
 
   return (
@@ -107,7 +102,7 @@ export function ModalCrEdit(props) {
           <BtnExluir onClick={deleteCr}>
             Excluir
           </BtnExluir>
-          
+
         </div>
 
       </Container>

@@ -4,10 +4,10 @@ import axios from "axios";
 import Image from "next/image";
 import imgNotFound from '../../../../public/not.png';
 import SideBar from "../../../components/sideBar";
-import { ModalCrEdit } from "../../../components/modalCrEdit";
+//import { ModalCrEdit } from "../../../components/modalCrEdit";
 import { canSSRAuth } from "../../../utils/canSSRAuth";
-import { ModalDocumentoNovo } from "../../../components/modalDocumentoNovo";
-import { ModalDocEdit } from "../../../components/modalDocEdit";
+import { ModalDocumentoNovo } from "../components/modalDocumentoNovo";
+import { ModalDocEdit } from "../components/modalDocEdit";
 import { AuthContext } from "../../../contexts/AuthContext";
 
 import {
@@ -27,7 +27,8 @@ import {
   BtnCriar,
   BtnText,
 } from "./styles";
-import { Alert } from "@chakra-ui/react";
+//import { Alert } from "@chakra-ui/react";
+import { api } from "../../../services/apiClient";
 
 const listaDoc = [
   {
@@ -61,29 +62,23 @@ export default function Documento() {
 
   console.log('MEU USER', user)
 
-  console.log('Lista Documento', listaDoc);
+  // console.log('Lista Documento', listaDoc);
 
   useEffect(() => {
     listagemDoc();
-
   }, [])
 
   async function listagemDoc() {
     setDomLoaded(true);
-    await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_document_type/ ')
-      .then(async function (response) {
-        if (response.status == 200) {
-          setListaDoc(response.data.list_document_type);
-          setDomLoaded(false);
-        }
-      })
-      .catch(function (error) {
-        console.log('MEU ERRO Listagem =', error);
-        window.alert('Atenção', 'Erro.')
-        setDomLoaded(false);
-      }).finally(() => {
-        setDomLoaded(false);
-      });
+    try {
+      const response = await api.get('/list-documento')
+      setListaDoc(response.data)
+      setDomLoaded(false);
+
+    } catch (error) {
+      console.log('MEU ERRO Listagem =', error);
+      setDomLoaded(false);
+    }
   }
 
   function handleOpenModal() {

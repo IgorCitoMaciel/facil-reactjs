@@ -5,7 +5,7 @@ import Image from "next/image";
 import imgNotFound from '../../../../public/not.png';
 import SideBar from "../../../components/sideBar";
 import { ModalCrEdit } from "../../../components/modalCrEdit";
-import { ModalCrNovo } from "../../../components/modalCrNovo";
+import { ModalCrNovo } from "../components/modalCrNovo";
 import { canSSRAuth } from "../../../utils/canSSRAuth";
 
 import {
@@ -25,6 +25,7 @@ import {
   BtnCriar,
   BtnText,
 } from "./styles";
+import { api } from "../../../services/apiClient";
 
 const listaOc = [
   {
@@ -65,8 +66,8 @@ export default function CentroResultado() {
   const [dataVencimento, setDataVencimento] = useState('');
   const [listaCr, setListaCr] = useState([]);
 
-  const data = "2022-10-06"
-  console.log('Testando Data', data.split('-').reverse().join('-') )
+  //const data = "2022-10-06"
+ // console.log('Testando Data', data.split('-').reverse().join('-'))
 
 
   useEffect(() => {
@@ -105,21 +106,16 @@ export default function CentroResultado() {
 
   async function listagem() {
     setDomLoaded(true);
-    await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_result_center/')
-      .then(async function (response) {
-        if (response.status == 200) {
-          setListaCr(response.data.list_result_center);
-         // console.log('caiu aqui na listagem', response.data.list_result_center)
-          setDomLoaded(false);
-        }
-      })
-      .catch(function (error) {
-        console.log('MEU ERRO Listagem =', error);
-        Alert.alert('Atenção', 'Erro.')
-        setDomLoaded(false);
-      }).finally(() => {
-        setDomLoaded(false);
-      });
+
+    try {
+      const response = await api.get('/list-centro-resultado')
+      setListaCr(response.data);
+      setDomLoaded(false);
+
+    } catch (error) {
+      console.log('MEU ERRO Listagem =', error);
+      setDomLoaded(false);
+    }
   }
 
   return (
@@ -135,7 +131,7 @@ export default function CentroResultado() {
               <div style={{ overflow: "auto", display: "flex", flexDirection: "column" }}>
                 <AreaContainerCampos>
                   {
-                    listaOc.length ? (
+                    listaCr.length ? (
                       <Table>
                         <thead>
                           <Trr>
@@ -154,15 +150,15 @@ export default function CentroResultado() {
                                     handleOpenModal();
                                     setNomeCr(item.name);
                                     setIdCr(item.id.toString());
-                                    setDataCriacao(item.creation_date.split('-').reverse().join('-'));
+                                    setDataCriacao(item.creation_date);
                                     setDataVencimento(item.due_date.split('-').reverse().join('-'));
                                   }}>
                                     {item.id}
                                   </BtnListOc>
                                 </Tdd>
                                 <Tdd>{item.name}</Tdd>
-                                <Tdd>{item.creation_date.split('-').reverse().join('-')}</Tdd>
-                                <Tdd>{item.due_date.split('-').reverse().join('-')}</Tdd>
+                                <Tdd>{item.creation_date}</Tdd>
+                                <Tdd>{item.due_date}</Tdd>
                               </Trr>
                             ))
                           }
@@ -175,7 +171,7 @@ export default function CentroResultado() {
                           setNomeCr={setNomeCr}
                           idCr={idCr}
                           setIdCr={setIdCr}
-                          listaOc={listaOc}
+                          //listaOc={listaOc}
                           dataCriacao={dataCriacao}
                           setDataCriacao={setDataCriacao}
                           dataVencimento={dataVencimento}
@@ -206,10 +202,10 @@ export default function CentroResultado() {
             </AreaCampos>
           </ContentArea>
         </>
-      ):
-      (
-        <Load/>
-      )}
+      ) :
+        (
+          <Load />
+        )}
     </Container>
   )
 }
