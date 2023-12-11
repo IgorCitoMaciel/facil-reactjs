@@ -27,6 +27,7 @@ import {
   BtnCriar,
   BtnText,
 } from "./styles";
+import { Alert } from "@chakra-ui/react";
 
 const listaDoc = [
   {
@@ -78,7 +79,7 @@ export default function Documento() {
       })
       .catch(function (error) {
         console.log('MEU ERRO Listagem =', error);
-        Alert.alert('Atenção', 'Erro.')
+        window.alert('Atenção', 'Erro.')
         setDomLoaded(false);
       }).finally(() => {
         setDomLoaded(false);
