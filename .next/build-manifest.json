@@ -15,6 +15,11 @@
     "static/development/_middlewareManifest.js"
   ],
   "pages": {
+    "/CentroCusto/OrdemCompra": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/CentroCusto/OrdemCompra.js"
+    ],
     "/CentroResultado/ListagemCr": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
@@ -24,6 +29,16 @@
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/Documento/ListagemDoc.js"
+    ],
+    "/Fornecedor/ListarFornecedor": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/Fornecedor/ListarFornecedor.js"
+    ],
+    "/Insumo/ListarInsumo": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/Insumo/ListarInsumo.js"
     ],
     "/_app": [
       "static/chunks/webpack.js",

@@ -29,7 +29,6 @@ import {
   BtnCriar,
   BtnText,
 } from "./styles";
-import { Alert } from "@mui/material";
 
 
 export default function Documento() {

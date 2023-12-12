@@ -5,18 +5,21 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import moment from "moment";
 import CurrencyInput from 'react-currency-input-field';
 //import { ModalCR } from "../../../components/modalCResultados";
+
 import { ModalDocumento } from "../../../components/modalDocumento";
-import { ModalDespesa } from "../../../components/modalDespesa";
-import { ModalCrNovo } from "../../../components/modalCrNovo";
+import {ModalDespesa } from "../../../components/modalDespesa"
+
+// import { ModalCrNovo } from "../../../components/modalCrNovo";
+import { ModalCrNovo } from "../../CentroResultado/components/modalCrNovo";
 import { ModalInsumo } from "../../../components/modalAddInsumo";
 import { ModalInsumoAdd } from "../../../components/modalInsumoAdd";
-import { ModalFornecedor } from "../../../components/modalFornecedor";
+
+//import { ModalFornecedor } from "../../../components/modalFornecedor";
+import { ModalFornecedor } from "../../Fornecedor/components/modalFornecedor";
 import { ModalParcelas } from "../../../components/modalParcelas";
 
 import { canSSRAuth } from "../../../utils/canSSRAuth";
 import { Load } from "../../../components/load";
-
-
 
 
 import {
@@ -61,11 +64,12 @@ import {
 import SideBar from "../../../components/sideBar";
 import { INTERNALS } from "next/dist/server/web/spec-extension/request";
 import { MdOutlineCastForEducation } from "react-icons/md";
+import { api } from "../../../services/apiClient";
 
 
 export default function CentroCusto() {
   const { user } = useContext(AuthContext);
-  const [domLoaded, setDomLoaded] = useState(true);
+  const [domLoaded, setDomLoaded] = useState(false);
   const [estabelecimento, setEstabelecimento] = useState("")
   const [centroResultado, setCentroResultado] = useState("")
   const [dataCriacao, setDataCriacao] = useState("")
@@ -144,14 +148,14 @@ export default function CentroCusto() {
 
   // }
 
-  useEffect(() => {
-    //filtraFornecedor();
-    if (valor && porcentagem) {
-      setValorDesconto(formatValor(valor) - (formatValor(valor) * (parseFloat(porcentagem / 100))))
-    } else {
-      setValorDesconto()
-    }
-  }, [valor, porcentagem])
+  // useEffect(() => {
+  //   //filtraFornecedor();
+  //   if (valor && porcentagem) {
+  //     setValorDesconto(formatValor(valor) - (formatValor(valor) * (parseFloat(porcentagem / 100))))
+  //   } else {
+  //     setValorDesconto()
+  //   }
+  // }, [valor, porcentagem])
 
   useEffect(() => {
     listarInsumos();
@@ -186,54 +190,63 @@ export default function CentroCusto() {
   const dataAtual = new Date().toLocaleDateString();
 
   async function listarInsumos() {
-    const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_insumos/')
+    setDomLoaded(true);
+    try{
+      const response = await api.get('/list-insumo'); 
+      console.log("response insumo", response.data)  
+        setListaInsumo(response.data);
+        setDomLoaded(false);
+      
 
-    try {
-      setListaInsumo(result.data.list_insumos)
-
-    } catch (error) {
-      console.log('MEU ERRO Listar Insumos =', error);
-
+    }catch(error){
+      console.log('MEU ERRO Listagem Insumo =', error); 
+      setDomLoaded(false);
     }
 
   }
 
 
   async function listagemFornecedor() {
-    await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_providers/')
-      .then(async function (response) {
-        if (response.status == 200) {
-          setListaFornecedor(response.data.list_providers);
+    setDomLoaded(true);
+    try{
+      const response =  await api.get('/list-fornecedor')
+      console.log('MEU RESPONSE', response.data)
+      setListaFornecedor(response.data);
+      setDomLoaded(false);
 
-        }
-      })
-      .catch(function (error) {
-        console.log('MEU ERRO Listagem =', error);
-      }).finally(() => {
-      });
+    }catch(err){
+      window.alert('Atenção', 'Erro.')
+      setDomLoaded(false);
+    }
   }
 
 
   async function ListarDoc() {
-    const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_document_type/')
-
+    setDomLoaded(true);
     try {
-      setListaDoc(result.data.list_document_type)
+      const response = await api.get('/list-documento')
+      console.log('MEU RESPONSE doc', response.data)
+      setListaDoc(response.data)
       setDomLoaded(false);
+
     } catch (error) {
-      console.log('MEU ERRO Listar Documento =', error);
+      console.log('MEU ERRO Listagem =', error);
+      setDomLoaded(false);
     }
   }
 
   async function ListarCr() {
-
-    const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_result_center/')
+    setDomLoaded(true);
 
     try {
-      //console.log('Lista Doc =', result.data);
-      setListaCr(result.data.list_result_center)
+      const response = await api.get('/list-centro-resultado')
+      console.log("Meu response CR", response.data)
+      setListaCr(response.data);
+      setDomLoaded(false);
+
     } catch (error) {
-      //console.log('MEU ERRO Add OC =', error);
+      console.log('MEU ERRO Listagem =', error);
+      setDomLoaded(false);
     }
   }
 

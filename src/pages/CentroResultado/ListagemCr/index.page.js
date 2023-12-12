@@ -66,9 +66,6 @@ export default function CentroResultado() {
   const [dataVencimento, setDataVencimento] = useState('');
   const [listaCr, setListaCr] = useState([]);
 
-  //const data = "2022-10-06"
- // console.log('Testando Data', data.split('-').reverse().join('-'))
-
 
   useEffect(() => {
     listagem();

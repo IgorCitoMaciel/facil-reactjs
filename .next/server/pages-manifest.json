@@ -1,5 +1,10 @@
 {
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
-  "/_document": "pages/_document.js"
+  "/_document": "pages/_document.js",
+  "/Insumo/ListarInsumo": "pages/Insumo/ListarInsumo.js",
+  "/Documento/ListagemDoc": "pages/Documento/ListagemDoc.js",
+  "/CentroCusto/OrdemCompra": "pages/CentroCusto/OrdemCompra.js",
+  "/Fornecedor/ListarFornecedor": "pages/Fornecedor/ListarFornecedor.js",
+  "/CentroResultado/ListagemCr": "pages/CentroResultado/ListagemCr.js"
 }
