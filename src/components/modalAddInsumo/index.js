@@ -15,11 +15,6 @@ export function ModalInsumo(props) {
   const [novoDoc, setNovoDoc] = useState("");
   const [nomeInsumo, setNomeInsumo] = useState("");
   const [unidade, setUnidade] = useState("");
-
-
-
-
-
   //console.log('Novo Doc', novoDoc)
 
   async function addDoc(event) {

@@ -51,6 +51,7 @@ import {
   Table2,
 } from "./styles";
 import { toast } from "react-toastify";
+import { api } from "../../../services/apiClient";
 
 const ListaDia = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10',
   '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26',
@@ -60,7 +61,7 @@ const ListaDia = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10',
 
 export default function CentroCusto() {
   const { user } = useContext(AuthContext)
-  const [domLoaded, setDomLoaded] = useState(true);
+  const [domLoaded, setDomLoaded] = useState(false);
   const [dia, setDia] = useState('');
   const [mes, setMes] = useState('');
   const [ano, setAno] = useState('');
@@ -130,10 +131,10 @@ export default function CentroCusto() {
 
   async function listaFornecedor() {
     setDomLoaded(true);
-    const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_providers/ ')
 
     try {
-      const arrayComRepeticao = result.data.list_providers;
+      const response = await api.get('/list-fornecedor',{ timeout: 10000 }) // Tempo limite de 10 segundos
+      const arrayComRepeticao = response.data;
       const arraySemRepeticao = [];
 
       arrayComRepeticao.forEach((item) => {
@@ -142,7 +143,7 @@ export default function CentroCusto() {
           arraySemRepeticao.push(item.company_name);
         }
       });
-      console.log('arrayFilter', arraySemRepeticao)
+      console.log('New arrayFilter ListaFornecedor sem repedicao = ', arraySemRepeticao)
 
       setFornecedorLista(arraySemRepeticao)
       setDomLoaded(false);
@@ -154,18 +155,15 @@ export default function CentroCusto() {
     }
   }
 
-  // console.log('fornecedorLista', fornecedorLista)
   async function listagemOc() {
     setDomLoaded(true);
-    const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_cost_center/?page=' + `${page}` + '&status=False')
-
     try {
-      // console.log('CAIU NOS 200 OC', result.data.list_cost_center)
-      // console.log('Meu User na Lista OC', user)
+      const response = await api.get(`/list-centro-custo?page=${1}&pageSize=${10}`)
 
-      setListaOc(result.data.list_cost_center)
-      setMaxPage(result.data.pagination.pages)
-      setCount(result.data.pagination.count)
+      setListaOc(response.data)
+      console.log("NEW -- Minha Lista OC =", response.data)
+      //setMaxPage(result.data.pagination.pages)
+      //setCount(result.data.pagination.count)
       setIdUser(user.id)
       setDomLoaded(false);
       // console.log('testando busca',result.data.list_cost_center.map((item)=> item.installment_fk.map((item)=> item.date_expire.split('-').reverse().join('-') )))
@@ -175,23 +173,16 @@ export default function CentroCusto() {
     }
   }
 
-  // console.log('Map installment_fk',listaOc.map((item)=>item.installment_fk))
 
   const resultFilter = listaOc
     .filter((oc) => {
-
-      // const newDay = valorAtual.expire_at.split('-').reverse().join('-')
-      // const day = newDay.split('-')[0]
-
-      // if (dia === '') return true
-      // return day === dia
-      const installment = oc.installment_fk
+      const installment = oc.parcelas
       if (!installment.length) {
         return !installment.length && !dia // quando nao tiver, retorna true(mostra todos) 
       }
 
       const installmentFilter = installment.some((item) => {
-        const newDay = item.date_expire.split('-').reverse().join('-')
+        const newDay = item.data_vencimento.split('-').reverse().join('-')
         const day = newDay.split('-')[0]
 
         if (dia === '') return true
@@ -199,21 +190,14 @@ export default function CentroCusto() {
       })
       return installmentFilter
     })
-    // .filter((valorAtual) => {
-    //   const newMonth = valorAtual.expire_at.split('-').reverse().join('-')
-    //   const month = newMonth.split('-')[1]
-
-    //   if (mes === '') return true
-    //   return month === mes
-    // })
     .filter((oc) => {
-      const installment = oc.installment_fk
+      const installment = oc.parcelas
       if (!installment.length) {
         return !installment.length && !mes // quando nao tiver, retorna true(mostra todos) 
       }
 
       const installmentFilter = installment.some((item) => {
-        const newMonth = item.date_expire.split('-').reverse().join('-')
+        const newMonth = item.data_vencimento.split('-').reverse().join('-')
         const month = newMonth.split('-')[1]
 
         if (mes === '') return true
@@ -222,15 +206,15 @@ export default function CentroCusto() {
       return installmentFilter
 
     }).filter((valorAtual) => {
-      const newYear = valorAtual.expire_at.split('-').reverse().join('-')
+      const newYear = valorAtual.expire.split('-').reverse().join('-')
       const year = newYear.split('-')[2]
 
       if (ano === '') return true
       return year === ano
     })
     .filter((valorAtual) => {
-      const provider = valorAtual.provider?.company_name
-      // console.log("Meu Provider aqui...",provider)
+      const provider = valorAtual.company_name
+      // console.log("Meu Provider aqui...",provider/fornecedor)
 
       if (fornecedorFilter === '') return true
       return fornecedorFilter === provider
@@ -239,7 +223,7 @@ export default function CentroCusto() {
       if (!pesquisa) {
         return true
       }
-      const insumoFilter = valorAtual.insumos_fk?.some((insumo) => {
+      const insumoFilter = valorAtual.some((insumo) => {
         const regex = new RegExp(pesquisa, "gi")
         if (!insumo.name) {
           return false
@@ -255,7 +239,7 @@ export default function CentroCusto() {
       }
       const regex = new RegExp(pesquisaCnpj, "i")
 
-      return regex.test(valorAtual.provider.cnpj)
+      return regex.test(valorAtual.cnpj)
 
     }).filter((valorAtual) => {
       if (!pesquisaDocType) {
@@ -265,7 +249,7 @@ export default function CentroCusto() {
 
       const regex = new RegExp(texto, "i")
 
-      return regex.test(valorAtual.document_type.name)
+      return regex.test(valorAtual.name)
     }).filter((valorAtual) => {
       if (!pesquisaNota) {
         return true
@@ -275,15 +259,6 @@ export default function CentroCusto() {
 
       return regex.test(valorAtual.nota_fiscal)
     })
-
-    // console.log("Meu log resultFilter", resultFilter)
-
-  // .filter((valorAtual) => {
-  //   const newStatus = valorAtual.status
-
-  //   if (estado === true) return true
-  //   return newStatus === estado
-  // })
 
 
   function handleOpenModal() {
@@ -298,11 +273,9 @@ export default function CentroCusto() {
   }
 
 
- // console.log('teste',teste)
 
-  console.log("User Listagem", user)
+  //console.log("User Listagem", user)
 
-  // console.log('user = = =',user)
   async function aprovarOc(item) {
     const data = {
       id: item.id,
@@ -319,12 +292,11 @@ export default function CentroCusto() {
       provider: "",
       nota_fiscal: "",
       nome_banco: "",
-	    data_pagamento: "",
+      data_pagamento: "",
     }
 
     console.log("Data Req", data)
 
-    
     if (user.category?.name === 'Desenvolvimento' || user.category?.name === 'Master' || user.category?.name === 'Desenvolvimento') {
       await axios.put('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/edit_cost_center/', data)
 
@@ -495,10 +467,14 @@ export default function CentroCusto() {
     );
   };
 
-  // console.log("setParcelas", parcelas)
-  // console.log("resultFilter", resultFilter)
+  // const resultFilter = [
+  //   { id: 1, name:"teste"},
+  //   { id: 2, name:"teste2"},
+  // ]
 
-  
+  //console.log("resultFilter ======", resultFilter)
+
+
 
   return (
     <Container>
@@ -522,7 +498,7 @@ export default function CentroCusto() {
                     <option value="">Dia do vencimento</option>
                     {ListaDia.map((item) => {
                       return (
-                        <option value={item}>{item}</option>
+                        <option key={item} value={item}>{item}</option>
                       )
                     })}
                   </SelectVencimento>
@@ -581,7 +557,7 @@ export default function CentroCusto() {
                     {fornecedorLista?.map((item) => {
                       return (
                         // <div key={item.id}>
-                        <option value={item}>{item}</option>
+                        <option key={item} value={item}>{item}</option>
                         // </div>
                       )
                     })}
@@ -629,7 +605,7 @@ export default function CentroCusto() {
               <div style={{ overflow: "none", overflowY: "auto", display: "flex", flexDirection: "column", marginBottom: 45, margin: "0px 10px 0px 10px" }} >
 
                 {
-                  resultFilter.length ? (
+                  resultFilter?.length ? (
                     <Table>
                       <Thead>
                         <tr>
@@ -652,9 +628,9 @@ export default function CentroCusto() {
                                 <BtnListOc onClick={() => {
                                   handleOpenModal();
                                   setDataCriacao(item.created_at.split('-').reverse().join('-'));
-                                  setDataVencimento(item.expire_at.split('-').reverse().join('-'));
-                                  setDocumento(item.document_type?.name)
-                                  setCentroResultado(item.contract_reference?.name);
+                                  setDataVencimento(item.expire.split('-').reverse().join('-'));
+                                  setDocumento(item.document_type)
+                                  setCentroResultado(item.centroResultado?.name);
                                   setEstabelecimento(item.name);
                                   setValor(item.value);
                                   setCheck(check);
@@ -662,23 +638,23 @@ export default function CentroCusto() {
                                   setIdOc(item.id)
                                   setNota(item.nota_fiscal)
                                   setStatus(item.payment_status)
-                                  setFornecedor(item.provider.company_name + " " + "(" + item.provider.cnpj + ")")
+                                  setFornecedor(item.fornecedor_cc.company_name + " " + "(" + item.fornecedor_cc.cnpj + ")")
                                   setValorDesconto(item.discount)
-                                  setInsumos(item.insumos_fk)
-                                  setParcelas(item.installment_fk)
-                                  setPaymentParcela(item.installment_fk.payment)
-                                  setBanco(item.nome_banco)
-                                  setDataPagamento(item.data_pagamento)
+                                  setInsumos(item.insumos)
+                                  setParcelas(item.parcelas)
+                                  setPaymentParcela(item.parcelas.pagamento)
+                                  setBanco(item.nome_banco) //verificar new
+                                  setDataPagamento(item.data_pagamento) // verificar new
                                 }}>
                                   {item.id}
                                 </BtnListOc>
                               </Tdd>
-                              <Tdd>{item.created_at.split('-').reverse().join('-')}</Tdd>
-                              <Tdd>{item.expire_at.split('-').reverse().join('-')}</Tdd>
-                              <Tdd>{item.provider?.company_name}</Tdd>
+                              <Tdd>{item.created_at.split('T')[0].split('-').reverse().join('-')}</Tdd>
+                              <Tdd>{item.expire.split('-').reverse().join('-')}</Tdd>
+                              <Tdd>{item.fornecedor_cc.company_name}</Tdd>
 
                               <Tdd>{item.name}</Tdd>
-                              <Tdd>{item.contract_reference?.name}</Tdd>
+                              <Tdd>{item.centroResultado?.name}</Tdd>
                               <Tdd>{(item.value)}</Tdd>
                               <Tdd>
                                 {item.status === false ?
@@ -740,7 +716,7 @@ export default function CentroCusto() {
 
                     </Table>
                   ) :
-                    (resultFilter === [] ? (<></>) :
+                    (resultFilter.length === 0 ? (<></>) :
                       <AreaImg>
                         <Image src={imgNotFound} />
                         <TextImg>Ordem de compra não encontrada !</TextImg>
@@ -748,7 +724,7 @@ export default function CentroCusto() {
                     )
                 }
               </div>
-            
+
               <AreaBtnPagination>
                 <BtnVoltar onClick={() => voltaPage()}>
                   <BtnTexto>Voltar</BtnTexto>

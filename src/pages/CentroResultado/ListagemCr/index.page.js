@@ -74,7 +74,7 @@ export default function CentroResultado() {
 
   function handleOpenModal() {
     setIsAddCentroResultadoModal(true);
-    console.log('chamou handleOpen')
+    console.log('chamou handleOpenModal')
   }
 
   function handleCloseModal() {
@@ -91,9 +91,10 @@ export default function CentroResultado() {
     listagem();
   }
 
+  //botao criar novo chama essa funcao
   function handleOpenAddCentroResultadoModalNovo() {
     setIsAddCentroResultadoModalNovo(true);
-    console.log('chamou handleOpen')
+    console.log('chamou handleOpenAddCentroResultadoModalNovo')
   }
 
   function handleCloseAddCentroResultadoModalNovo() {
@@ -121,6 +122,12 @@ export default function CentroResultado() {
         <>
           <SideBar />
           <ContentArea>
+            <ModalCrNovo
+              handleCloseAddCentroResultadoModalNovo={handleCloseAddCentroResultadoModalNovo}
+              isAddCentroResultadoModalNovo={isAddCentroResultadoModalNovo}
+              nomeCr={nomeCr}
+              setNomeCr={setNomeCr}
+            />
             <AreaCampos>
               <HeaderAreaCampos>
                 <Title>Listagem Centro Resultado</Title>
@@ -175,13 +182,6 @@ export default function CentroResultado() {
                           setDataVencimento={setDataVencimento}
                           listaCr={listaCr}
                           setListaCr={setListaCr}
-                        />
-
-                        <ModalCrNovo
-                          handleCloseAddCentroResultadoModalNovo={handleCloseAddCentroResultadoModalNovo}
-                          isAddCentroResultadoModalNovo={isAddCentroResultadoModalNovo}
-                          nomeCr={nomeCr}
-                          setNomeCr={setNomeCr}
                         />
                       </Table>
                     ) :

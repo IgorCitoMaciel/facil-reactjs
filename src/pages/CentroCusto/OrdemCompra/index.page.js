@@ -7,12 +7,12 @@ import CurrencyInput from 'react-currency-input-field';
 //import { ModalCR } from "../../../components/modalCResultados";
 
 import { ModalDocumento } from "../../../components/modalDocumento";
-import {ModalDespesa } from "../../../components/modalDespesa"
+import { ModalDespesa } from "../../../components/modalDespesa"
 
 // import { ModalCrNovo } from "../../../components/modalCrNovo";
 import { ModalCrNovo } from "../../CentroResultado/components/modalCrNovo";
 import { ModalInsumo } from "../../../components/modalAddInsumo";
-import { ModalInsumoAdd } from "../../../components/modalInsumoAdd";
+import { ModalInsumoAdd } from "./components/modalInsumoAdd";
 
 //import { ModalFornecedor } from "../../../components/modalFornecedor";
 import { ModalFornecedor } from "../../Fornecedor/components/modalFornecedor";
@@ -69,7 +69,7 @@ import { api } from "../../../services/apiClient";
 
 export default function CentroCusto() {
   const { user } = useContext(AuthContext);
-  const [domLoaded, setDomLoaded] = useState(false);
+  const [domLoaded, setDomLoaded] = useState(true);
   const [estabelecimento, setEstabelecimento] = useState("")
   const [centroResultado, setCentroResultado] = useState("")
   const [dataCriacao, setDataCriacao] = useState("")
@@ -125,6 +125,64 @@ export default function CentroCusto() {
 
   const [fornecedorFilter, setFornecedorFilter] = useState([])
 
+  const [valorBruto, setValorBruto] = useState('');
+  const [valorFormatado, setValorFormatado] = useState('');
+
+  useEffect(() => {
+    setValorFormatado(formatValor(valorBruto));
+  }, [valorBruto]);
+
+  useEffect(() => {
+    setValor(formatValorMoedaReal(somaTotalValueInsumos(insumoOc)))
+  }, [insumoOc]);
+
+  console.log("valor >> = - = - =",valor)
+
+  // function formatValorMoedaReal(valor) { // formata number em string modeda real
+  //   return valor.toLocaleString('pt-BR', {
+  //     style: 'currency',
+  //     currency: 'BRL',
+  //     minimumFractionDigits: 2,
+  //     maximumFractionDigits: 2,
+  //   });
+  // }
+
+  function formatValorMoedaReal(valor) { // formata number em string modeda real
+    if (valor === undefined || valor === null) {
+      return '';
+    }
+  
+    return valor.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  function formataStringEmNumber(valor) {
+    const valorFormat = parseFloat(formatValorMoedaReal(valor.replace('.', '').replace(',', '.')))
+    return valorFormat
+  }
+
+  function formataStringEmNumberInsumo(valor) {
+    if (valor.includes(',')) {
+      return Number(valor.replace(/\./g, '').replace(',', '.'));
+    } else {
+      return Number(valor);
+    }
+  }
+
+  function somaTotalValueInsumos(array) {
+    return array.reduce((soma, objeto) => {
+      const valor = formataStringEmNumberInsumo(objeto.total_value);
+      return soma + valor;
+    }, 0);
+  }
+
+  //console.log("testando valor soma insumos Number = = = > ", somaTotalValueInsumos(insumoOc))
+  //console.log("testando valor soma insumos String Real = = = > ", formatValorMoedaReal(somaTotalValueInsumos(insumoOc)))
+
   // useEffect(() => {
   //   filtraFornecedor();
   // }, [listaFornecedor])
@@ -148,23 +206,41 @@ export default function CentroCusto() {
 
   // }
 
-  // useEffect(() => {
-  //   //filtraFornecedor();
-  //   if (valor && porcentagem) {
-  //     setValorDesconto(formatValor(valor) - (formatValor(valor) * (parseFloat(porcentagem / 100))))
-  //   } else {
-  //     setValorDesconto()
-  //   }
-  // }, [valor, porcentagem])
+  function formataValorMoedaReal(valor) {
+    const valorFormat = parseFloat(formatReal(valor).replace('.', '').replace(',', '.'))
+    const valorFormatado = valorFormat.toLocaleString('pt-BR', {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      //currency: 'BRL',
+    });
+    return valorFormatado
+  }
 
   useEffect(() => {
-    listarInsumos();
-    // fomatandoData();
-    ListarDoc();
-    ListarCr();
-    listagemFornecedor();
+    //filtraFornecedor();
+    if (valor && porcentagem) {
+      const valorNumberDesconto = formatValor(valor) - (formatValor(valor) * (parseFloat(porcentagem / 100)))
+      setValorDesconto(valorNumberDesconto)
+    } else {
+      setValorDesconto()
+    }
+  }, [valor, porcentagem])
 
-  }, []) 
+  console.log("valorDesconto >> -=-=-=-=-=",valorDesconto)
+  console.log("TESTE-=-=-=-=-=",formatValorMoedaReal(valorDesconto))
+
+
+
+  useEffect(() => {
+    // listarInsumos();
+    // fomatandoData();
+    // ListarDoc();
+    // ListarCr();
+    // listagemFornecedor();
+    AllFunction();
+
+  }, [])
 
   function formatDesconto(valorDesconto) {
     const formatter = new Intl.NumberFormat('pt-BR', {
@@ -189,78 +265,75 @@ export default function CentroCusto() {
 
   const dataAtual = new Date().toLocaleDateString();
 
-  async function listarInsumos() {
-    setDomLoaded(true);
-    try{
-      const response = await api.get('/list-insumo'); 
-      console.log("response insumo", response.data)  
-        setListaInsumo(response.data);
-        setDomLoaded(false);
-      
+  async function AllFunction() {
+    await listarInsumos();
+    await listagemFornecedor();
+    await ListarDoc();
+    await ListarCr();
+  }
 
-    }catch(error){
-      console.log('MEU ERRO Listagem Insumo =', error); 
+  async function listarInsumos() {
+    //setDomLoaded(true);
+    try {
+      const response = await api.get('/list-insumo');
+      //console.log("response insumo", response.data)
+      setListaInsumo(response.data);
       setDomLoaded(false);
+
+
+    } catch (error) {
+      console.log('MEU ERRO Listagem Insumo =', error);
+      //setDomLoaded(false);
     }
 
   }
 
 
   async function listagemFornecedor() {
-    setDomLoaded(true);
-    try{
-      const response =  await api.get('/list-fornecedor')
-      console.log('MEU RESPONSE', response.data)
+    //setDomLoaded(true);
+    try {
+      const response = await api.get('/list-fornecedor')
+      //console.log('MEU RESPONSE', response.data)
       setListaFornecedor(response.data);
       setDomLoaded(false);
 
-    }catch(err){
+    } catch (err) {
       window.alert('Atenção', 'Erro.')
-      setDomLoaded(false);
+      console.log('MEU ERRO Listagem fornecedor =', err);
+      //setDomLoaded(false);
     }
   }
 
 
   async function ListarDoc() {
-    setDomLoaded(true);
+    //setDomLoaded(true);
     try {
       const response = await api.get('/list-documento')
-      console.log('MEU RESPONSE doc', response.data)
+      //console.log('MEU RESPONSE doc', response.data)
       setListaDoc(response.data)
       setDomLoaded(false);
 
     } catch (error) {
-      console.log('MEU ERRO Listagem =', error);
-      setDomLoaded(false);
+      console.log('MEU ERRO Listagem documento =', error);
+      //setDomLoaded(false);
     }
   }
 
   async function ListarCr() {
-    setDomLoaded(true);
+    //setDomLoaded(true);
 
     try {
       const response = await api.get('/list-centro-resultado')
-      console.log("Meu response CR", response.data)
+      //console.log("Meu response CR", response.data)
       setListaCr(response.data);
       setDomLoaded(false);
 
     } catch (error) {
-      console.log('MEU ERRO Listagem =', error);
+      console.log('MEU ERRO Listagem = centro resultado', error);
       setDomLoaded(false);
     }
   }
 
-  async function ListarDespesa() {
-
-    const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_expense/')
-
-    try {
-      //console.log('Lista Despesa =', result.data.list_expense);
-      setListaDespesa(result.data.list_expense)
-    } catch (error) {
-      console.log('MEU ERRO Listar Despesa =', error);
-    }
-  }
 
   function limpaCampos() {
     setEstabelecimento("");
@@ -315,48 +388,62 @@ export default function CentroCusto() {
       data_vencimento: dataVencimento1.split('-').reverse().join('-'),
       pagamento: false,
     }]
-      //console.log('parcelaUnica z z z z z z',listaParcelas, (parcelaUnica))
+    //console.log('parcelaUnica z z z z z z',listaParcelas, (parcelaUnica))
 
+    // let data = {
+    //   name: estabelecimento,
+    //   document_type: documento,  // id do documento
+    //   fornecedor: fornecedor,
+    //   expire: dataVencimento.split('-').reverse().join('-'), // data de vencimento
+    //   observation: observacao,
+    //   contract_reference: centroResultado, // id do centro de resultado
+    //   status: false,
+    //   user: user.id.toString(),
+    //   value: valorDesconto ? formatDesconto(valorDesconto) : `${formatValorRequest(valor)}`,
+    //   discount: porcentagem,
+    //   insumos: insumoOc,
+    //   parcelas: listaParcelas ? listaParcelas : parcelaUnica,
+    //   nota_fiscal: "",
+    // }
     let data = {
       name: estabelecimento,
       document_type: documento,  // id do documento
       fornecedor: fornecedor,
-      expire: dataVencimento.split('-').reverse().join('-'), // data de vencimento
+      expire: dataVencimento, // data de vencimento
       observation: observacao,
       contract_reference: centroResultado, // id do centro de resultado
       status: false,
-      user: user.id.toString(),
+      user: user.id,
       value: valorDesconto ? formatDesconto(valorDesconto) : `${formatValorRequest(valor)}`,
       discount: porcentagem,
       insumos: insumoOc,
       parcelas: listaParcelas ? listaParcelas : parcelaUnica,
       nota_fiscal: "",
-
     }
-    // console.log('Meu data Request Criar OC -- -- -- -- --', data.value )
+    console.log('Meu data Request Criar OC -- -- -- -- --', data)
     // console.log('Meu data Parcelas Request Criar OC -- -- -- -- --', data.parcelas, parcelaUnica[0].valor_parcela )
     // console.log('Meu data Parcela Unica Request Criar OC -- -- -- -- --', parcelaUnica[0].valor_parcela  )
 
-    if (dataVencimento && documento && centroResultado && estabelecimento && valor) {
-      const result = await axios.post('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/add_new_cost_center/', data)
+    // if (dataVencimento && documento && centroResultado && estabelecimento && valor) {
+    //   const result = await axios.post('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/add_new_cost_center/', data)
 
-      try {
-        toast.success('Ordem de Compra criada com sucesso!');
-        console.log('Lista Despesa =', result.data.list_expense);
-        setListaDespesa(result.data.list_cost_center);
-        limpaCampos();
-        setLoad(false);
-      } catch (error) {
-        toast.error('Erro em criar Ordem de Compra!');
-        console.log('MEU ERRO Add OC =', error);
-        setLoad(false)
-      }
+    //   try {
+    //     toast.success('Ordem de Compra criada com sucesso!');
+    //     console.log('Lista Despesa =', result.data.list_expense);
+    //     setListaDespesa(result.data.list_cost_center);
+    //     limpaCampos();
+    //     setLoad(false);
+    //   } catch (error) {
+    //     toast.error('Erro em criar Ordem de Compra!');
+    //     console.log('MEU ERRO Add OC =', error);
+    //     setLoad(false)
+    //   }
 
-    } else {
-      toast.error('Preencha todos os campos!');
-      setLoad(false)
+    // } else {
+    //   toast.error('Preencha todos os campos!');
+    //   setLoad(false)
 
-    }
+    // }
   }
 
   function handleOpenAddParcelasModal() {
@@ -390,15 +477,15 @@ export default function CentroCusto() {
     ListarDoc();
   }
 
-  function handleOpenAddDespesaModal() {
-    setIsAddDespesaModal(true);
-    //console.log('chamou handleOpen')
-  }
+  // function handleOpenAddDespesaModal() {
+  //   setIsAddDespesaModal(true);
+  //   //console.log('chamou handleOpen')
+  // }
 
-  function handleCloseAddDespesaModal() {
-    setIsAddDespesaModal(false);
-    ListarDespesa();
-  }
+  // function handleCloseAddDespesaModal() {
+  //   setIsAddDespesaModal(false);
+  //   ListarDespesa();
+  // }
 
   function handleOpenAddCentroResultadoModalNovo() {
     setIsAddCentroResultadoModalNovo(true);
@@ -444,12 +531,12 @@ export default function CentroCusto() {
       return (valorDesconto) / parseFloat(pagamento)
       // console.log("caiu aqui CALC - - - - - - -", valorDesconto/ parseFloat(pagamento) )
     } else {
-      console.log('valor calculado - -', formatReal(valor), "pagamento - -" + parseFloat(pagamento))
-      console.log('valor dividido - -', parseFloat(formatReal(valor).replace('.', '').replace(',', '.')) / parseFloat(pagamento))
+      //console.log('valor calculado - -', formatReal(valor), "pagamento - -" + parseFloat(pagamento))
+      //console.log('valor dividido - -', parseFloat(formatReal(valor).replace('.', '').replace(',', '.')) / parseFloat(pagamento))
       return parseFloat(formatReal(valor).replace('.', '').replace(',', '.')) / parseFloat(pagamento)
     }
   }
- 
+
 
   function verifyPay() {
     if (pagamento == '1') {
@@ -486,12 +573,12 @@ export default function CentroCusto() {
       // console.log("valor - - - - - -", parseFloat(formatReal(valor).replace(',', '')))
       // console.log("pagamento - - - - - -", parseFloat(pagamento))
       // console.log("valorParcela - - - - - -", valorParcela)
-     // console.log("valorVencimento1 - - - - - -", valorVencimento1)
+      // console.log("valorVencimento1 - - - - - -", valorVencimento1)
       //console.log("valorVencimento2- - - - - -", valorVencimento2)
 
       if (valorParcela === valorDaParcela) {
         // toast.error('Parcela já registrada!')
- 
+
       }
       if (pagamento == "2") {
         listaParcelas =
@@ -657,7 +744,7 @@ export default function CentroCusto() {
     return e;
   }
 
- 
+
 
   const handleKeyUp = useCallback((e) => currency(e))
 
@@ -672,9 +759,9 @@ export default function CentroCusto() {
 
   // console.log('Meu Valor Teste',formatReal(valor))
 
-  function formatValor(valor) {
-     return parseFloat(formatReal(valor).replace('.', '').replace(',', '.'))
-  
+  function formatValor(valor) { // verificar se precisa ser mantida ou excluida
+    return parseFloat(formatReal(valor).replace('.', '').replace(',', '.'))
+
   }
 
   function formatValorRequest(valor) {
@@ -688,13 +775,46 @@ export default function CentroCusto() {
     return valorFormatado
   }
 
-  // console.log('valor da oc',  formatValorRequest(valor))
+  function formatarValor(valor) {
+    const valorFormat = parseFloat(formatReal(valor).replace('.', '').replace(',', '.'))
+    const valorFormatado = valorFormat.toLocaleString('pt-BR', {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      //currency: 'BRL',
+    });
+    return valorFormatado
+  }
 
-  // console.log("valor Desconto", formatDesconto(valorDesconto) )
+  //console.log('valor da oc Formatado', formatValorRequest(valor))
+  //console.log('valor teste ', formatarValor(valor))
+  //console.log("valorDesconto", valorDesconto)
+
+  function formataValorComDesconto(valor) {
+    const valorTotalFormatadoNumber = formatarValor(valor);
+    const valorTotalFormatadoString = String(valorTotalFormatadoNumber); // Garante que valorFormatado seja uma string
+    const valorFinal = parseFloat(valorTotalFormatadoString.replace('.', '').replace(',', '.'));
+
+    if (porcentagem) {
+      const valorDesconto = valorFinal - (valorFinal * (porcentagem / 100))
+
+      return formatDesconto(valorDesconto) // retorna valor em string
+
+    }
+
+  }
+
+  //console.log("valor com desconto =====", formataValorComDesconto(valor))
+  //console.log("valorDesconto >>>>>", valorDesconto)
+
+
+  // console.log("valor ====== ", valorFinal)
+  // console.log("porcentagem ===== ", porcentagem / 100)
+  // console.log("Valor menos o Desconto  === ", valorFinal - (valorFinal * (porcentagem / 100)))
 
   // console.log("a-a-a-a", valorDesconto ? String(valorDesconto) : formatValorRequest(String(valor)) )
 
-  console.log("lista",lista)
+  //console.log("lista", lista)
 
 
   return (
@@ -835,11 +955,15 @@ export default function CentroCusto() {
                       <TitleInput>Valor</TitleInput>
 
                       <Input
+                        disabled={true}
+                        type="text"
                         prefix="R$"
                         onKeyUp={handleKeyUp}
-                        value={formatReal(valor)}
+                        //value={formatReal(valor)}
+                        value={formatValorMoedaReal(somaTotalValueInsumos(insumoOc))}
                         onChange={(e) => setValor(e.target.value)}
                       />
+
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -855,9 +979,13 @@ export default function CentroCusto() {
                     <div style={{ display: "flex", flexDirection: "column", marginRight: 55 }}>
                       <TitleInput>Valor com desconto</TitleInput>
                       <Input
+                        type={"text"}
                         prefix="R$"
+                        disabled={true}
                         onKeyUp={handleKeyUp}
-                        value={!valorDesconto ? "" : formatDesconto(valorDesconto)}
+                        value={!valorDesconto ? "" : formatValorMoedaReal(valorDesconto)}
+                        //value={!valorDesconto ? "" : formatDesconto(valorDesconto)}
+                        //value={!porcentagem ? "" : formataValorComDesconto(valor)}
                         onChange={(e) => setValorDesconto(e.target.value)}
                       />
                     </div>
@@ -1004,7 +1132,7 @@ export default function CentroCusto() {
                   <AreaInsumo>
                     {lista?.map((item) => {
                       return (
-                        <ul key={item.name}>
+                        <ul key={item.total_value}>
                           <li style={{ marginLeft: 20 }}>
                             <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
                               <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
@@ -1024,12 +1152,12 @@ export default function CentroCusto() {
 
                               <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
                                 <TitleList style={{ marginRight: 20, marginLeft: 20 }}>Valor Unidade:</TitleList>
-                                <TextList>{"R$ "+formatReal(item.unity_value)}</TextList>
+                                <TextList>{"R$ " + formatReal(item.unity_value)}</TextList>
                               </div>
 
                               <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
                                 <TitleList style={{ marginRight: 20, marginLeft: 20 }}>Valor Total:</TitleList>
-                                <TextList>{"R$ "+formatReal(item.total_value)}</TextList>
+                                <TextList>{"R$ " + formatReal(item.total_value)}</TextList>
                               </div>
                             </div>
                           </li>

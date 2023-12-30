@@ -302,6 +302,7 @@ export function ModalOcEdit(props) {
         <TitleDoc style={{ marginBottom: 20 }}>VENCIMENTOS</TitleDoc>
         {
           parcelasPrint?.map((item) => {
+            console.log("parcelas Print ====",parcelasPrint)
             return (
               <div key={item.id} style={{ display: 'flex', flexDirection: 'row', justifyContent: "flex-start" }}>
                 <LineDocColumn style={{ marginRight: 70 }}>
@@ -313,7 +314,7 @@ export function ModalOcEdit(props) {
 
                 <LineDocColumn style={{ marginRight: 70 }}>
                   <TitleDoc style={{ marginTop: 10 }}>Data Vencimento</TitleDoc>
-                  <DescriptionDoc style={{ marginLeft: 0 }}>{item.date_expire.split('-').reverse().join('-')}</DescriptionDoc>
+                  <DescriptionDoc style={{ marginLeft: 0 }}>{item.data_vencimento.split('-').reverse().join('-')}</DescriptionDoc>
                 </LineDocColumn>
 
                 <LineDocColumn>
@@ -621,7 +622,7 @@ export function ModalOcEdit(props) {
                               <TextData style={{ color: "#f0f0f0", fontSize: "1rem" }}>{item.number}º Parcela</TextData>
                             </CardHeader>
                             <CardFooter>
-                              <TextData>{item.date_expire.split('-').reverse().join('-')}</TextData>
+                              <TextData>{item.data_vencimento.split('-').reverse().join('-')}</TextData>
                               <TextData>{parseFloat(item.value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TextData>
 
                               {item.payment ?

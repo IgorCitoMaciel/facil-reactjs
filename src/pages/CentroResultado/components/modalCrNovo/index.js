@@ -38,6 +38,8 @@ export function ModalCrNovo(props) {
     }
   }
 
+  console.log("chamou dentro do modal", props.isAddCentroResultadoModalNovo)
+
   return (
     <Modal
       ariaHideApp={false}
