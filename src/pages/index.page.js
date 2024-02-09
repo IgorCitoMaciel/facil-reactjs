@@ -149,18 +149,22 @@ export default function SignIn() {
   )
 }
 
+
 export const getServerSideProps = canSSRGuest(async (ctx) => {
   // Verifique a validade do token aqui
-  const token = ctx.req.cookies.token;
+   //const token = ctx.req.cookies.token;
 
-  if (!token || tokenIsExpired(token)) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      },
-    }
-  }
+  // console.log("Meu token getServerSideProps", token)
+
+  // if (token || tokenIsExpired(token)) {
+  //   return {
+  //     redirect: {
+  //       destination: '/',
+  //       permanent: false,
+  //     },
+  //   }
+  // }
+
   return {
     props: {}
   }

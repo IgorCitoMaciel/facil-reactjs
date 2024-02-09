@@ -38,13 +38,19 @@ export function AuthProvider({ children }) {
   //   console.log('Meu Token...', token)
   // }
 
-  // useEffect(() => {
-  //   const { '@facil.token': token } = parseCookies();
-  //   if(token){
-  //   }
-  //   //loadStorage();
+  useEffect(() => {
+    const { '@facil.token': token } = parseCookies();
+    if(token){
+      api.get('/me').then(response => {
+        const { id, email, category_id } = response.data;
+        setUser({ id, email, category_id })
+      }).catch(() => {
+        signOut()
+      })
+    }
+    //loadStorage();
 
-  // }, [])
+  }, [])
 
 
   async function SignIn({ email, password }) {
@@ -68,10 +74,13 @@ export function AuthProvider({ children }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}` // a api utilizara nosso token
       // Router.push('/CentroCusto/OrdemCompra')
 
+      toast.success('Logado com sucesso!')
+
       Router.push('/Ateste')
 
       // toast.success('Logado com sucesso!')
     } catch (err) {
+      toast.error('Verifique os campos digitados!')
       console.log("Erro ao logar", err)
 
     }

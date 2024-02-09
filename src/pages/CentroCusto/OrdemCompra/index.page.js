@@ -138,15 +138,6 @@ export default function CentroCusto() {
 
   console.log("valor >> = - = - =",valor)
 
-  // function formatValorMoedaReal(valor) { // formata number em string modeda real
-  //   return valor.toLocaleString('pt-BR', {
-  //     style: 'currency',
-  //     currency: 'BRL',
-  //     minimumFractionDigits: 2,
-  //     maximumFractionDigits: 2,
-  //   });
-  // }
-
   function formatValorMoedaReal(valor) { // formata number em string modeda real
     if (valor === undefined || valor === null) {
       return '';
@@ -159,6 +150,7 @@ export default function CentroCusto() {
       maximumFractionDigits: 2,
     });
   }
+  
 
   function formataStringEmNumber(valor) {
     const valorFormat = parseFloat(formatValorMoedaReal(valor.replace('.', '').replace(',', '.')))
@@ -175,7 +167,8 @@ export default function CentroCusto() {
 
   function somaTotalValueInsumos(array) {
     return array.reduce((soma, objeto) => {
-      const valor = formataStringEmNumberInsumo(objeto.total_value);
+      //const valor = formataStringEmNumberInsumo(objeto.total_value);
+      const valor = (objeto.total_value);
       return soma + valor;
     }, 0);
   }
@@ -227,8 +220,8 @@ export default function CentroCusto() {
     }
   }, [valor, porcentagem])
 
-  console.log("valorDesconto >> -=-=-=-=-=",valorDesconto)
-  console.log("TESTE-=-=-=-=-=",formatValorMoedaReal(valorDesconto))
+  //console.log("valorDesconto >> -=-=-=-=-=",valorDesconto)
+  //console.log("TESTE-=-=-=-=-=",formatValorMoedaReal(valorDesconto))
 
 
 
@@ -355,10 +348,12 @@ export default function CentroCusto() {
 
   const parcelaUnicaTabela = [{
     numero_parcela: "1",
-    valor_parcela: valorDesconto ? formatValorRequest(String(valorDesconto)) : formatValorRequest(String(valor)),
-    data_vencimento: dataVencimento1.split('-').reverse().join('-'),
+    valor_parcela: valorDesconto ? valorDesconto : formatValorStringEmNumero(valor),
+    data_vencimento: dataVencimento1.split('-').join('-'),
     pagamento: false,
   }]
+
+  console.log("parcelaUnicaTabela a a a a a a a a",formatValorStringEmNumero(parcelaUnicaTabela[0].valor_parcela))
 
   let data1 = {
     name: estabelecimento,
@@ -375,6 +370,10 @@ export default function CentroCusto() {
     parcelas: listaParcelas ? listaParcelas : parcelaUnicaTabela,
     nota_fiscal: "",
 
+  }
+
+  function replaceSTRVirgulaEmPonto(str) {
+    return str.replace(/,/g, '.');
   }
 
 
@@ -414,23 +413,26 @@ export default function CentroCusto() {
       contract_reference: centroResultado, // id do centro de resultado
       status: false,
       user: user.id,
-      value: valorDesconto ? formatDesconto(valorDesconto) : `${formatValorRequest(valor)}`,
+      value: valorDesconto ? valorDesconto : formatValorStringEmNumero(valor),
       discount: porcentagem,
       insumos: insumoOc,
-      parcelas: listaParcelas ? listaParcelas : parcelaUnica,
+      // parcelas: listaParcelas ? listaParcelas : parcelaUnica,
+      parcelas: listaParcelas ? listaParcelas : formatValorStringEmNumero(parcelaUnicaTabela[0].valor_parcela),
       nota_fiscal: "",
+      payment_status: false
     }
     console.log('Meu data Request Criar OC -- -- -- -- --', data)
     // console.log('Meu data Parcelas Request Criar OC -- -- -- -- --', data.parcelas, parcelaUnica[0].valor_parcela )
     // console.log('Meu data Parcela Unica Request Criar OC -- -- -- -- --', parcelaUnica[0].valor_parcela  )
 
     // if (dataVencimento && documento && centroResultado && estabelecimento && valor) {
-    //   const result = await axios.post('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/add_new_cost_center/', data)
+
+    //   const result = await api.post('/centro-custo', data)
 
     //   try {
     //     toast.success('Ordem de Compra criada com sucesso!');
     //     console.log('Lista Despesa =', result.data.list_expense);
-    //     setListaDespesa(result.data.list_cost_center);
+    //     //setListaDespesa(result.data.list_cost_center);
     //     limpaCampos();
     //     setLoad(false);
     //   } catch (error) {
@@ -445,6 +447,52 @@ export default function CentroCusto() {
 
     // }
   }
+
+function arredondarNumero(num) {
+  return (Math.round((num + Number.EPSILON) * 100) / 100).toFixed(2);
+}
+
+//
+//
+// COMECAMOS AQUI FUNCOES PARA FORMATAR VALOR E VALOR DESCONTO
+//
+//
+
+function formatarNumeroParaPadraoMoeda(numero) {
+  // transforma  o numero 1500.5 em um numero = 1.500,50
+  //let num = numero.toFixed(2);
+  let num = parseFloat(numero).toFixed(2);
+  let str = num.toString().replace('.', ',');
+  let partes = str.split(",");
+  partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return partes.join(",");
+}
+
+function transformarStringEmNumero(str) {
+  //transformarStringEmNumero('1.500.00'), a função retornará o número 1500.00.
+  let numStr = str.replace(/\.(?=[^.]*$)/, ',').replace(/\./g, '').replace(',', '.');
+  return parseFloat(numStr);
+}
+
+function formatValorStringEmNumero(valor) {
+  // transforma  a string R$ 1.500,50 em =  numero 1500.5
+  const valorFormat = parseFloat(formatReal(valor).replace('.', '').replace(',', '.'))
+  const valorFormatado = valorFormat.toLocaleString('pt-BR', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    //currency: 'BRL',
+  });
+  return transformarStringEmNumero(replaceSTRVirgulaEmPonto(valorFormatado))
+}
+
+
+  //console.log("valor desconto TESTE", valorDesconto, formatarNumeroParaPadraoMoeda(valorDesconto))
+
+   //console.log("MEU VALOR TESTE",valor, formatValorStringEmNumero(valor), formatarNumeroParaPadraoMoeda(formatValorStringEmNumero(valor)))
+   //console.log("MEU VALOR_DESCONTO TESTE",valorDesconto)
+
+ 
 
   function handleOpenAddParcelasModal() {
     // setDataVencimento1(dataVencimento)
@@ -561,6 +609,7 @@ export default function CentroCusto() {
   // console.log("listaParcelas",formatValorRequest(listaParcelas[0]?.valor_parcela) )
 
   function addParcela() {
+    console.log("P A G A M E N T O ",pagamento)
     var listaParcelas = []
     if (!dataVencimento || !valor) {
       toast.error('Preencha todos os campos anteriores!')
@@ -568,6 +617,7 @@ export default function CentroCusto() {
 
     else if (pagamento) {
       var valorParcela = valorDesconto ? parseFloat(formatReal(valorDesconto)) : parseFloat(formatReal(valor).replace(',', '')) / parseFloat(pagamento)
+      console.log("valorParcela aaaaaaaaaaaaaa",valorParcela)
 
       // console.log("valor Desconto - - - - - -", parseFloat(formatValor(valorDesconto)))
       // console.log("valor - - - - - -", parseFloat(formatReal(valor).replace(',', '')))
@@ -575,6 +625,8 @@ export default function CentroCusto() {
       // console.log("valorParcela - - - - - -", valorParcela)
       // console.log("valorVencimento1 - - - - - -", valorVencimento1)
       //console.log("valorVencimento2- - - - - -", valorVencimento2)
+
+      //console.log('valorVencimento1 B B B B',(valorVencimento1)) //valorVencimento1 10.250,25
 
       if (valorParcela === valorDaParcela) {
         // toast.error('Parcela já registrada!')
@@ -585,14 +637,14 @@ export default function CentroCusto() {
           [
             {
               numero_parcela: "1",
-              valor_parcela: formatDesconto(valorVencimento1),
-              data_vencimento: dataVencimento1.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento1),
+              data_vencimento: dataVencimento1.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "2",
-              valor_parcela: formatDesconto(valorVencimento2),
-              data_vencimento: dataVencimento2.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento2),
+              data_vencimento: dataVencimento2.split('-').join('-'),
               pagamento: false,
             }
           ]
@@ -602,20 +654,20 @@ export default function CentroCusto() {
           [
             {
               numero_parcela: "1",
-              valor_parcela: formatDesconto(valorVencimento1),
-              data_vencimento: dataVencimento1.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento1),
+              data_vencimento: dataVencimento1.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "2",
-              valor_parcela: formatDesconto(valorVencimento2),
-              data_vencimento: dataVencimento2.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento2),
+              data_vencimento: dataVencimento2.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "3",
-              valor_parcela: formatDesconto(valorVencimento3),
-              data_vencimento: dataVencimento3.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento3),
+              data_vencimento: dataVencimento3.split('-').join('-'),
               pagamento: false,
             },
           ]
@@ -625,26 +677,26 @@ export default function CentroCusto() {
           [
             {
               numero_parcela: "1",
-              valor_parcela: formatDesconto(valorVencimento1),
-              data_vencimento: dataVencimento1.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento1),
+              data_vencimento: dataVencimento1.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "2",
-              valor_parcela: formatDesconto(valorVencimento2),
-              data_vencimento: dataVencimento2.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento2),
+              data_vencimento: dataVencimento2.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "3",
-              valor_parcela: formatDesconto(valorVencimento3),
-              data_vencimento: dataVencimento3.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento3),
+              data_vencimento: dataVencimento3.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "4",
-              valor_parcela: formatDesconto(valorVencimento4),
-              data_vencimento: dataVencimento4.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento4),
+              data_vencimento: dataVencimento4.split('-').join('-'),
               pagamento: false,
             },
           ]
@@ -654,32 +706,32 @@ export default function CentroCusto() {
           [
             {
               numero_parcela: "1",
-              valor_parcela: formatDesconto(valorVencimento1),
-              data_vencimento: dataVencimento1.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento1),
+              data_vencimento: dataVencimento1.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "2",
-              valor_parcela: formatDesconto(valorVencimento2),
-              data_vencimento: dataVencimento2.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento2),
+              data_vencimento: dataVencimento2.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "3",
-              valor_parcela: formatDesconto(valorVencimento3),
-              data_vencimento: dataVencimento3.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento3),
+              data_vencimento: dataVencimento3.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "4",
-              valor_parcela: formatDesconto(valorVencimento4),
-              data_vencimento: dataVencimento4.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento4),
+              data_vencimento: dataVencimento4.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "5",
-              valor_parcela: formatDesconto(valorVencimento5),
-              data_vencimento: dataVencimento5.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento5),
+              data_vencimento: dataVencimento5.split('-').join('-'),
               pagamento: false,
             },
           ]
@@ -689,38 +741,38 @@ export default function CentroCusto() {
           [
             {
               numero_parcela: "1",
-              valor_parcela: formatDesconto(valorVencimento1),
-              data_vencimento: dataVencimento1.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento1),
+              data_vencimento: dataVencimento1.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "2",
-              valor_parcela: formatDesconto(valorVencimento2),
-              data_vencimento: dataVencimento2.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento2),
+              data_vencimento: dataVencimento2.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "3",
-              valor_parcela: formatDesconto(valorVencimento3),
-              data_vencimento: dataVencimento3.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento3),
+              data_vencimento: dataVencimento3.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "4",
-              valor_parcela: formatDesconto(valorVencimento4),
-              data_vencimento: dataVencimento4.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento4),
+              data_vencimento: dataVencimento4.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "5",
-              valor_parcela: formatDesconto(valorVencimento5),
-              data_vencimento: dataVencimento5.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento5),
+              data_vencimento: dataVencimento5.split('-').join('-'),
               pagamento: false,
             },
             {
               numero_parcela: "6",
-              valor_parcela: formatDesconto(valorVencimento6),
-              data_vencimento: dataVencimento6.split('-').reverse().join('-'),
+              valor_parcela: (valorVencimento6),
+              data_vencimento: dataVencimento6.split('-').join('-'),
               pagamento: false,
             }
           ]
@@ -730,7 +782,7 @@ export default function CentroCusto() {
 
   }
 
-  // console.log('listaParcelas - -',listaParcelas)
+   //console.log('listaParcelas -  A A A A -',listaParcelas)
 
   function currency(e) {
     let value = e.currentTarget.value;
@@ -775,6 +827,17 @@ export default function CentroCusto() {
     return valorFormatado
   }
 
+  function formatValorRequestPonto(valor) {
+    const valorFormat = parseFloat(formatReal(valor).replace('.', '').replace(',', '.'))
+    const valorFormatado = valorFormat.toLocaleString('de-DE', {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return valorFormatado
+}
+
+
   function formatarValor(valor) {
     const valorFormat = parseFloat(formatReal(valor).replace('.', '').replace(',', '.'))
     const valorFormatado = valorFormat.toLocaleString('pt-BR', {
@@ -815,6 +878,11 @@ export default function CentroCusto() {
   // console.log("a-a-a-a", valorDesconto ? String(valorDesconto) : formatValorRequest(String(valor)) )
 
   //console.log("lista", lista)
+
+  //console.log("listaFornecedor",listaFornecedor)
+  //console.log("listaParcelas",listaParcelas)
+ // console.log("valor parcela",valorDaParcela)
+ //console.log("insumoOc  - - - - - - - -",insumoOc)
 
 
   return (
@@ -857,7 +925,7 @@ export default function CentroCusto() {
                             <option value="">Selecione o fornecedor</option>
                             {listaFornecedor.map((item) => {
                               return (
-                                <option key={item.id} value={item.company_name}>{item.company_name + "  " + "(" + item.cnpj + ")"}</option>
+                                <option key={item.id} value={item.id}>{item.company_name + "  " + "(" + item.cnpj + ")"}</option>
                                 // <option key={item} value={item}>{item}</option>
                               )
                             })}
@@ -930,6 +998,58 @@ export default function CentroCusto() {
                         isAddDocumentoModal={isAddDocumentoModal}
                       />
                     </AreaComponentBtnAdd>
+
+                    {/* <div style={{backgroundColor:"#f12", height: 20, width: "100%"}}></div> */}
+
+                    <AreaTitleInsumo>
+                    <TitleInput>Insumos</TitleInput>
+                    <AreaBtn>
+                      <BtnDeleteInsumo onClick={deletarInsumo}>
+                        <BtnText>Deletar Insumo</BtnText>
+                      </BtnDeleteInsumo>
+
+                      <BtnAddInsumo onClick={handleOpenAddInsumoModal}>
+                        <BtnText>Adicionar Insumo</BtnText>
+                      </BtnAddInsumo>
+                    </AreaBtn>
+                  </AreaTitleInsumo>
+                  <AreaInsumo>
+                    {lista?.map((item) => {
+                      //console.log("Meus insumos A Q U I >>>>>>>>",item)
+                      return (
+                        <ul key={item.total_value}>
+                          <li style={{ marginLeft: 20 }}>
+                            <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
+                              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                <TitleList style={{ marginRight: 20 }}>Nome:</TitleList>
+                                <TextList>{item.name} ,</TextList>
+                              </div>
+
+                              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                <TitleList style={{ marginRight: 20, marginLeft: 20 }}>Unidade:</TitleList>
+                                <TextList>{item.und} ,</TextList>
+                              </div>
+
+                              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                <TitleList style={{ marginRight: 20, marginLeft: 20 }}>Quantidade:</TitleList>
+                                <TextList>{item.amount} ,</TextList>
+                              </div>
+
+                              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                <TitleList style={{ marginRight: 20, marginLeft: 20 }}>Valor Unidade:</TitleList>
+                                <TextList>{"R$ " + formatarNumeroParaPadraoMoeda(item.unity_value)}</TextList>
+                              </div>
+
+                              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                <TitleList style={{ marginRight: 20, marginLeft: 20 }}>Valor Total:</TitleList>
+                                <TextList>{"R$ " + formatarNumeroParaPadraoMoeda(item.total_value)}</TextList>
+                              </div>
+                            </div>
+                          </li>
+                        </ul>
+                      )
+                    })}
+                  </AreaInsumo>
 
                     {/* <div style={{ display: "flex", flexDirection: "column", marginRight: 0 }}>
                       <TitleInput>Data de criação</TitleInput>
@@ -1031,6 +1151,7 @@ export default function CentroCusto() {
                               </Trr>
                               {
                                 listaParcelas?.map((item, index) => (
+                                  // console.log("item.parcela",item),
                                   <Trr key={index}>
                                     <Tdd>
                                       <BtnListOc onClick={() => {
@@ -1042,8 +1163,9 @@ export default function CentroCusto() {
                                         {item.numero_parcela}
                                       </BtnListOc>
                                     </Tdd>
-                                    <Tdd>{parseFloat(item.valor_parcela).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</Tdd>
-                                    <Tdd>{item.data_vencimento ? ((item.data_vencimento).split('-').reverse().join('-')) : ("Registrar Data!")}</Tdd>
+                                    <Tdd>{formatarNumeroParaPadraoMoeda(item.valor_parcela)}</Tdd>
+                                    {/* <Tdd>{parseFloat(item.valor_parcela).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</Tdd> */}
+                                    <Tdd>{item.data_vencimento ? ((item.data_vencimento).split('-').join('-')) : ("Registrar Data!")}</Tdd>
                                     <Tdd>{item.pagamento === false ? ("Não Realizado") : ("Realizado")}</Tdd>
                                   </Trr>
                                 )
@@ -1117,7 +1239,7 @@ export default function CentroCusto() {
                     valorVencimento6={valorVencimento6}
                   />
 
-                  <AreaTitleInsumo>
+                  {/* <AreaTitleInsumo>
                     <TitleInput>Insumos</TitleInput>
                     <AreaBtn>
                       <BtnDeleteInsumo onClick={deletarInsumo}>
@@ -1164,7 +1286,7 @@ export default function CentroCusto() {
                         </ul>
                       )
                     })}
-                  </AreaInsumo>
+                  </AreaInsumo> */}
 
 
                   <TitleInput>Observações</TitleInput>

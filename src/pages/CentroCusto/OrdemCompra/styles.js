@@ -287,6 +287,7 @@ export const BtnRegistrarParcelas = styled.button`
   background-color: #0472a4;
   height: 30px;
   width: 160px;
+  margin-bottom: 20px;
   border-radius: 0.2rem;
   font-size: 1.2rem;
   border: none;

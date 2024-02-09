@@ -37,7 +37,41 @@ export function ModalInsumoAdd(props) {
   const [cidade, setCidade] = useState('');
   const [pesquisaInsumo, setPesquisaInsumo] = useState('');
 
-  // console.log('listaInsumoModal',listaInsumoModal)
+  function replaceSTRVirgulaEmPonto(str) {
+    return str.replace(/,/g, '.');
+  }
+
+  function formatarNumeroParaPadraoMoeda(numero) {
+    // transforma  o numero 1500.5 em um numero = 1.500,50
+    //let num = numero.toFixed(2);
+    let num = parseFloat(numero).toFixed(2);
+    let str = num.toString().replace('.', ',');
+    let partes = str.split(",");
+    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return partes.join(",");
+  }
+  
+  function transformarStringEmNumero(str) {
+    //transformarStringEmNumero('1.500.00'), a função retornará o número 1500.00.
+    let numStr = str.replace(/\.(?=[^.]*$)/, ',').replace(/\./g, '').replace(',', '.');
+    return parseFloat(numStr);
+  }
+  
+  function formatValorStringEmNumero(valor) {
+    // transforma  a string R$ 1.500,50 em =  numero 1500.5
+    const valorFormat = parseFloat(formatReal(valor).replace('.', '').replace(',', '.'))
+    const valorFormatado = valorFormat.toLocaleString('pt-BR', {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      //currency: 'BRL',
+    });
+    return transformarStringEmNumero(replaceSTRVirgulaEmPonto(valorFormatado))
+  }
+
+   //console.log('listaInsumoModal',listaInsumoModal)
+   console.log('valorUnidade=================',valorUnidade, formatValorStringEmNumero(valorUnidade), formatReal(valorUnidade))
+   console.log('valorTotal=================',valorTotal, formatValorStringEmNumero(valorTotal))
 
 
   const addInsumo = (event) => {
@@ -47,10 +81,10 @@ export function ModalInsumoAdd(props) {
       und: unidade,
       material_type: tipoMaterial,
       amount: quantidade,
-      unity_value: formatValorMoedaReal(valorUnidade),
-      total_value: formatValorMoedaReal(valorTotal)
+      unity_value: formatValorStringEmNumero(valorUnidade),
+      total_value: formatValorStringEmNumero(valorTotal)
     }
-    console.log('meu data add insumo z-z-z-z-z-', data)
+    console.log('meu data add insumo Z-z-Z-z-Z-', data)
     var novaLista = [...props.lista, { ...data }]
     props.setLista(novaLista) // o que será mandando para a request
     props.setInsumoOc(novaLista)
@@ -160,16 +194,16 @@ export function ModalInsumoAdd(props) {
   }
 
   useEffect(() => {
-    console.log("Quantidade hook", formataStringEmNumber(quantidade))
+   // console.log("Quantidade hook", formataStringEmNumber(quantidade))
     //const valorUnidadeNumber =  formatReal(valorUnidade).replace('.', '').replace(',', '.')
 
     const valorUnidadeFormatadoNumber = formatValorMoedaReal(valorUnidade)
     const valorFormatadoString = String(valorUnidadeFormatadoNumber); // Garante que valorFormatado seja uma string
     const valorUnidadeFinal = parseFloat(valorFormatadoString.replace('.', '').replace(',', '.'));
-    console.log("ValorUnidade hook", valorUnidadeFinal)
+   // console.log("ValorUnidade hook", valorUnidadeFinal)
 
     const valorTotalInsumoNumber = formataStringEmNumber(quantidade) * valorUnidadeFinal
-    console.log("valorTotalInsumoNumber > > >", valorTotalInsumoNumber)
+    //console.log("valorTotalInsumoNumber > > >", valorTotalInsumoNumber)
     const valorUnidadeString = valorTotalInsumoNumber.toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
