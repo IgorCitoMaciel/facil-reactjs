@@ -1,5 +1,7 @@
 {
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
-  "/_document": "pages/_document.js"
+  "/_document": "pages/_document.js",
+  "/CentroCusto/ListagemOc": "pages/CentroCusto/ListagemOc.js",
+  "/CentroCusto/OrdemCompra": "pages/CentroCusto/OrdemCompra.js"
 }

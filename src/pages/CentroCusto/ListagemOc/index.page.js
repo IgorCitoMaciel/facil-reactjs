@@ -57,6 +57,21 @@ const ListaDia = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10',
   '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26',
   '27', '28', '29', '30', '31']
 
+const meses = [
+  { valor: '01', nome: 'Janeiro' },
+  { valor: '02', nome: 'Fevereiro' },
+  { valor: '03', nome: 'Março' },
+  { valor: '04', nome: 'Abril' },
+  { valor: '05', nome: 'Maio' },
+  { valor: '06', nome: 'Junho' },
+  { valor: '07', nome: 'Julho' },
+  { valor: '08', nome: 'Agosto' },
+  { valor: '09', nome: 'Setembro' },
+  { valor: '10', nome: 'Outubro' },
+  { valor: '11', nome: 'Novembro' },
+  { valor: '12', nome: 'Dezembro' },
+];
+
 
 
 export default function CentroCusto() {
@@ -97,14 +112,20 @@ export default function CentroCusto() {
   const [paymentParcela, setPaymentParcela] = useState();
   const [listagemFornecedor, setListagemFornecedor] = useState([]);
 
-  const [banco, setBanco] = useState("");
+  const [valorTotalOcDenconto, setValorTotalOcDenconto] = useState("");
   const [dataPagamento, setDataPagamento] = useState("");
 
 
   useEffect(() => {
+    //listagemOc();
+    //listaFornecedor();
+    todasFuncoes();
+  }, [])
+
+  function todasFuncoes() {
     listagemOc();
     listaFornecedor();
-  }, [])
+  }
 
   // useEffect(() => {
   //   filtraFornecedor();
@@ -128,22 +149,31 @@ export default function CentroCusto() {
   //   console.log("filtraFornecedor", arraySemRepeticao);
 
   // }
+  function formatarNumeroParaPadraoMoeda(numero) {
+    // transforma  o numero 1500.5 em um numero = 1.500,50
+    //let num = numero.toFixed(2);
+    let num = parseFloat(numero).toFixed(2);
+    let str = num.toString().replace('.', ',');
+    let partes = str.split(",");
+    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return partes.join(",");
+  }
 
   async function listaFornecedor() {
     setDomLoaded(true);
 
     try {
-      const response = await api.get('/list-fornecedor',{ timeout: 10000 }) // Tempo limite de 10 segundos
+      const response = await api.get('/list-fornecedor', { timeout: 10000 }) // Tempo limite de 10 segundos
       const arrayComRepeticao = response.data;
       const arraySemRepeticao = [];
 
       arrayComRepeticao.forEach((item) => {
         if (arraySemRepeticao.indexOf(item.company_name) === -1) {
-          console.log('id =', item.company_name)
+          //console.log('id =', item.company_name)
           arraySemRepeticao.push(item.company_name);
         }
       });
-      console.log('New arrayFilter ListaFornecedor sem repedicao = ', arraySemRepeticao)
+      //console.log('New arrayFilter ListaFornecedor sem repedicao = ', arraySemRepeticao)
 
       setFornecedorLista(arraySemRepeticao)
       setDomLoaded(false);
@@ -157,11 +187,11 @@ export default function CentroCusto() {
 
   async function listagemOc() {
     setDomLoaded(true);
+    const response = await api.get(`/list-centro-custo?page=${page}&pageSize=${10}`)
     try {
-      const response = await api.get(`/list-centro-custo?page=${1}&pageSize=${10}`)
 
       setListaOc(response.data)
-      console.log("NEW -- Minha Lista OC =", response.data)
+      //console.log("NEW -- Minha Lista OC =", response.data)
       //setMaxPage(result.data.pagination.pages)
       //setCount(result.data.pagination.count)
       setIdUser(user.id)
@@ -173,16 +203,15 @@ export default function CentroCusto() {
     }
   }
 
-
   const resultFilter = listaOc
     .filter((oc) => {
       const installment = oc.parcelas
       if (!installment.length) {
-        return !installment.length && !dia // quando nao tiver, retorna true(mostra todos) 
+        return !installment.length && !dia // quando nao tiver ambos, retorna true(mostra todos) 
       }
 
       const installmentFilter = installment.some((item) => {
-        const newDay = item.data_vencimento.split('-').reverse().join('-')
+        const newDay = item.data_vencimento.split('-').join('-')
         const day = newDay.split('-')[0]
 
         if (dia === '') return true
@@ -206,14 +235,14 @@ export default function CentroCusto() {
       return installmentFilter
 
     }).filter((valorAtual) => {
-      const newYear = valorAtual.expire.split('-').reverse().join('-')
+      const newYear = valorAtual.expire.split('-').join('-')
       const year = newYear.split('-')[2]
 
       if (ano === '') return true
       return year === ano
     })
     .filter((valorAtual) => {
-      const provider = valorAtual.company_name
+      const provider = valorAtual.fornecedor_cc.company_name
       // console.log("Meu Provider aqui...",provider/fornecedor)
 
       if (fornecedorFilter === '') return true
@@ -223,7 +252,7 @@ export default function CentroCusto() {
       if (!pesquisa) {
         return true
       }
-      const insumoFilter = valorAtual.some((insumo) => {
+      const insumoFilter = valorAtual.insumos.some((insumo) => {
         const regex = new RegExp(pesquisa, "gi")
         if (!insumo.name) {
           return false
@@ -233,15 +262,14 @@ export default function CentroCusto() {
 
       return insumoFilter
 
-    }).filter((valorAtual) => {
-      if (!pesquisaCnpj) {
-        return true
+    })
+    .filter((valorAtual) => {
+      if (!pesquisaCnpj || !valorAtual.fornecedor_cc) {
+        return true;
       }
-      const regex = new RegExp(pesquisaCnpj, "i")
-
-      return regex.test(valorAtual.cnpj)
-
-    }).filter((valorAtual) => {
+      return valorAtual.fornecedor_cc.cnpj.startsWith(pesquisaCnpj);
+    })
+    .filter((valorAtual) => {
       if (!pesquisaDocType) {
         return true
       }
@@ -249,7 +277,7 @@ export default function CentroCusto() {
 
       const regex = new RegExp(texto, "i")
 
-      return regex.test(valorAtual.name)
+      return regex.test(valorAtual.document_type)
     }).filter((valorAtual) => {
       if (!pesquisaNota) {
         return true
@@ -273,32 +301,17 @@ export default function CentroCusto() {
   }
 
 
-
-  //console.log("User Listagem", user)
-
   async function aprovarOc(item) {
     const data = {
       id: item.id,
       status: true,
       payment_status: false,
-      expire: "",
-      user: user.id,
-      value: "",
-      name: "",
-      document_type: "",
-      contract_reference: "",
-      observation: "",
-      discount: "",
-      provider: "",
-      nota_fiscal: "",
-      nome_banco: "",
-      data_pagamento: "",
     }
 
-    console.log("Data Req", data)
+    //console.log("User Req", user)
 
-    if (user.category?.name === 'Desenvolvimento' || user.category?.name === 'Master' || user.category?.name === 'Desenvolvimento') {
-      await axios.put('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/edit_cost_center/', data)
+    if (user.userCategory?.name === 'Desenvolvimento' || user.userCategory?.name === 'admin') {
+      await api.put('/update-centro-custo', data)
 
       try {
         console.log("Caiu no aprova OC")
@@ -318,439 +331,327 @@ export default function CentroCusto() {
   }
 
   async function avancaPage() {
-    if (page < maxPage) {
-      //chama funcao de listagem passanto page +1
-      console.log('caiu nos 200 avancar')
-      const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_cost_center/?page=' + `${page + 1}` + '&status=False')
-      try {
-        setListaOc(result.data.list_cost_center)
-        setMaxPage(result.data.pagination.pages)
-        setCount(result.data.pagination.count)
+    const result = await api.get(`/list-centro-custo?page=${page + 1}&pageSize=${10}`)
+    try {
+      if (result.data.length === 0) {
+        toast.warning('Não existe outra página')
+        return;
+      } else {
         setPage(page + 1)
-      } catch (error) {
-        console.log('MEU ERRO ListagemOC =', error);
+        setListaOc(response.data)
+        setIdUser(user.id)
+        setDomLoaded(false);
+
       }
-    } else {
-      toast.warning('Não existe outra página')
+    } catch (error) {
+      console.log('Meu erro avançar página =', error);
     }
   }
 
   async function voltaPage() {
-
     if (page !== 1) {
-      //chama funcao de listagem passanto page -1
-      console.log('caiu nos 200 avancar')
-      const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_cost_center/?page=' + `${page - 1}` + '&status=False')
+
+      const result = await api.get(`/list-centro-custo?page=${page - 1}&pageSize=${10}`)
       try {
-        setListaOc(result.data.list_cost_center)
-        setMaxPage(result.data.pagination.pages)
-        setCount(result.data.pagination.count)
-        setPage(page - 1)
+        if (result.data.length === 0) {
+          toast.warning('Não existe outra página')
+          return;
+        } else {
+          setPage(page - 1)
+          setListaOc(response.data)
+          setIdUser(user.id)
+          setDomLoaded(false);
+
+        }
       } catch (error) {
-        console.log('MEU ERRO ListagemOC =', error);
+        console.log('Meu erro avançar página =', error);
       }
-    } else {
+    }
+    else {
       toast.warning('Não existe outra página')
     }
   }
 
-  // console.log('resultFilter.length', resultFilter.length)
-  // console.log("fornecedorLista - - - - - - - - -",fornecedorLista);
+   
 
-  const ComponentToPrint = React.forwardRef((props, ref) => {
-    return (
-      <ContainerDoc ref={ref} >
-        <BarDoc></BarDoc>
-        <LineDocRow style={{ justifyContent: "space-between" }}>
-          <div style={{ display: 'flex', flexDirection: 'row' }}>
-            <TitleDoc>Fornecedor:</TitleDoc>
-            <DescriptionDoc>{fornecedor}</DescriptionDoc>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'row' }}>
-            <TitleDoc>Situação:</TitleDoc>
-            <DescriptionDoc>{status ? ('Aprovado') : ('Não Aprovado')}</DescriptionDoc>
-          </div>
+    // const Example = () => {
+    //   const componentRef = useRef();
+    //   const handlePrint = useReactToPrint({
+    //     content: () => componentRef.current,
+    //   });
 
-          <div style={{ display: 'flex', flexDirection: 'row' }}>
-            <TitleDoc>Numero OC:</TitleDoc>
-            <DescriptionDoc>{"ID_OC"}</DescriptionDoc>
-          </div>
-        </LineDocRow>
-        <LineDocRow>
-          <TitleDoc>Data:</TitleDoc>
-          <DescriptionDoc>{"Data_Criacao"}</DescriptionDoc>
-        </LineDocRow>
+    //   return (
+    //     <div>
+    //       <div style={{ display: "none" }}>
+    //         <ComponentToPrint ref={componentRef} />
+    //       </div>
+    //       <button onClick={handlePrint}>Print this out!</button>
+    //     </div>
+    //   );
+    // };
 
-        <LineDocRow>
-          <TitleDoc>Estabelecimento:</TitleDoc>
-          <DescriptionDoc>{"Estabelecimento"}</DescriptionDoc>
-        </LineDocRow>
-
-        <LineDocRow>
-          <TitleDoc>Centro de resultados:</TitleDoc>
-          <DescriptionDoc>{"Centro_de_resultados"}</DescriptionDoc>
-        </LineDocRow>
-
-        <LineDocRow>
-          <TitleDoc>OBS:</TitleDoc>
-          <DescriptionDoc>{"Observacoes"}</DescriptionDoc>
-        </LineDocRow>
-        <BarDoc style={{ marginTop: 10 }}></BarDoc>
-
-        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: "space-between" }}>
-          <LineDocColumn>
-            <TitleDoc>Item</TitleDoc>
-            <DescriptionDoc style={{ marginLeft: 0 }}>{"ID_Insumo"}</DescriptionDoc>
-          </LineDocColumn>
-
-          <LineDocColumn>
-            <TitleDoc>Descricao</TitleDoc>
-            <DescriptionDoc style={{ marginLeft: 0 }}>{"Tipo_Material"}</DescriptionDoc>
-          </LineDocColumn>
-
-          <LineDocColumn>
-            <TitleDoc>UN</TitleDoc>
-            <DescriptionDoc style={{ marginLeft: 0 }}>{"Unidade_medida"}</DescriptionDoc>
-          </LineDocColumn>
-
-          <LineDocColumn>
-            <TitleDoc>QTDE</TitleDoc>
-            <DescriptionDoc style={{ marginLeft: 0 }}>{"Quantidade"}</DescriptionDoc>
-          </LineDocColumn>
-
-          <LineDocColumn>
-            <TitleDoc>Vlr Unit</TitleDoc>
-            <DescriptionDoc style={{ marginLeft: 0 }}>{"Valor_Unitario"}</DescriptionDoc>
-          </LineDocColumn>
-
-          <LineDocColumn>
-            <TitleDoc>Total</TitleDoc>
-            <DescriptionDoc style={{ marginLeft: 0 }}>{"Valor_Total"}</DescriptionDoc>
-          </LineDocColumn>
-        </div>
-        <BarDoc style={{ marginTop: 10 }}></BarDoc>
-
-
-        <TitleDoc style={{ textDecorationLine: "underline" }}>Vencimentos</TitleDoc>
-        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: "flex-start" }}>
-          <LineDocColumn style={{ marginRight: 70 }}>
-            <TitleDoc style={{ marginTop: 10 }}>Data</TitleDoc>
-            <DescriptionDoc style={{ marginLeft: 0 }}>{"Data_vencimento"}</DescriptionDoc>
-          </LineDocColumn>
-
-          <LineDocColumn>
-            <TitleDoc style={{ marginTop: 10 }}>Valor</TitleDoc>
-            <DescriptionDoc style={{ marginLeft: 0 }}>{"valor_Pagar"}</DescriptionDoc>
-          </LineDocColumn>
-        </div>
-
-        <BarDoc style={{ marginTop: 10 }}></BarDoc>
-
-
-      </ContainerDoc>
-    );
-  });
-
-  const Example = () => {
-    const componentRef = useRef();
-    const handlePrint = useReactToPrint({
-      content: () => componentRef.current,
-    });
 
     return (
-      <div>
-        <div style={{ display: "none" }}>
-          <ComponentToPrint ref={componentRef} />
-        </div>
-        <button onClick={handlePrint}>Print this out!</button>
-      </div>
-    );
-  };
+      <Container>
+        {!domLoaded ? (
+          <>
+            <SideBar />
+            <ContentArea>
+              <AreaCampos>
+                <HeaderAreaCampos>
+                  <Title>Listagem Ordem Compra</Title>
+                </HeaderAreaCampos>
+                {/* <Example /> */}
 
-  // const resultFilter = [
-  //   { id: 1, name:"teste"},
-  //   { id: 2, name:"teste2"},
-  // ]
+                <div style={{ display: "flex", flexDirection: "row", marginTop: 30, marginLeft: 10, marginRight: 10, justifyContent: "space-between" }}>
+                  <AreaSelectVenvimento>
+                    <SelectVencimento
+                      name="dia"
+                      value={dia}
+                      onChange={(e) => setDia(e.target.value)}
+                    >
+                      <option value="">Dia do vencimento</option>
+                      {ListaDia.map((item) => {
+                        return (
+                          <option key={item} value={item}>{item}</option>
+                        )
+                      })}
+                    </SelectVencimento>
+                  </AreaSelectVenvimento>
 
-  //console.log("resultFilter ======", resultFilter)
+                  <AreaSelectVenvimento style={{ marginLeft: 30 }}>
+                    <SelectVencimento
+                      name="vencimento"
+                      value={mes}
+                      onChange={(e) => setMes(e.target.value)}
+                    >
+                      <option value="">Mês do pagamento</option>
+                      {meses.map((mes) => (
+                        <option key={mes.valor} value={mes.valor}>
+                          {mes.nome}
+                        </option>
+                      ))}
+                    </SelectVencimento>
+                  </AreaSelectVenvimento>
 
+                  <AreaSelectVenvimento style={{ marginLeft: 30 }}>
+                    <SelectVencimento
+                      name="ano"
+                      value={ano}
+                      onChange={(e) => setAno(e.target.value)}
+                    >
+                      <option value="">Ano do vencimento</option>
+                      {[...Array(21)].map((_, i) => {
+                        const year = 2022 + i;
+                        return <option key={year} value={year}>{year}</option>;
+                      })}
+                    </SelectVencimento>
+                  </AreaSelectVenvimento>
 
+                  <AreaSelectVenvimento style={{ marginLeft: 30 }}>
+                    <SelectVencimento
+                      name="Fornecedor"
+                      value={fornecedorFilter}
+                      onChange={(e) => setFornecedorFilter(e.target.value)}
+                    >
+                      <option value="">Fornecedor</option>
+                      {fornecedorLista?.map((item) => {
+                        return (
+                          // <div key={item.id}>
+                          <option key={item} value={item}>{item}</option>
+                          // </div>
+                        )
+                      })}
+                    </SelectVencimento>
+                  </AreaSelectVenvimento>
+                </div>
+                <div style={{ display: "flex", flexDirection: "row", marginTop: 10, backgroundColor: "transparent", marginLeft: 0, marginRight: 10, justifyContent: "space-between" }}>
+                  <AreaSelectVenvimento style={{ marginLeft: 10, marginTop: 10, height: 35 }}>
+                    <PesquisaInsumo
+                      type={"text"}
+                      placeholder="Pesquise por insumo"
+                      value={pesquisa}
+                      onChange={(e) => setPesquisa(e.target.value)}
+                    />
+                  </AreaSelectVenvimento>
 
-  return (
-    <Container>
-      {!domLoaded ? (
-        <>
-          <SideBar />
-          <ContentArea>
-            <AreaCampos>
-              <HeaderAreaCampos>
-                <Title>Listagem Ordem Compra</Title>
-              </HeaderAreaCampos>
-              {/* <Example /> */}
+                  <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 35 }}>
+                    <PesquisaInsumo
+                      type={"text"}
+                      placeholder="Pesquise CNPJ fornecedor"
+                      value={pesquisaCnpj}
+                      onChange={(e) => setPesquisaCnpj(e.target.value)}
+                    />
+                  </AreaSelectVenvimento>
 
-              <div style={{ display: "flex", flexDirection: "row", marginTop: 30, backgroundColor: "transparent", marginLeft: 10 }}>
-                <AreaSelectVenvimento>
-                  <SelectVencimento
-                    name="dia"
-                    value={dia}
-                    onChange={(e) => setDia(e.target.value)}
-                  >
-                    <option value="">Dia do vencimento</option>
-                    {ListaDia.map((item) => {
-                      return (
-                        <option key={item} value={item}>{item}</option>
+                  <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 35 }}>
+                    <PesquisaInsumo
+                      type={"text"}
+                      placeholder="Pesquise tipo documento"
+                      value={pesquisaDocType}
+                      onChange={(e) => setPesquisaDocType(e.target.value)}
+                    />
+                  </AreaSelectVenvimento>
+
+                  <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 35 }}>
+                    <PesquisaInsumo
+                      type={"text"}
+                      placeholder="Pesquise por nota fiscal"
+                      value={pesquisaNota}
+                      onChange={(e) => setPesquisaNota(e.target.value)}
+                    />
+                  </AreaSelectVenvimento>
+                </div>
+
+                <div style={{ overflow: "none", display: "flex", flexDirection: "column", overflowY: "auto", margin: "30px 10px 0px 10px" }} >
+                  {
+                    resultFilter?.length ? (
+                      <Table>
+                        <Thead>
+                          <tr>
+                            <Thh>Número</Thh>
+                            <Thh>Data criação</Thh>
+                            <Thh>Data vencimento</Thh>
+                            <Thh>Fornecedor</Thh>
+                            <Thh>Estabelecimento</Thh>
+                            <Thh>Centro de resultado</Thh>
+                            <Thh>Valor</Thh>
+                            <Thh>Status</Thh>
+                          </tr>
+                        </Thead>
+                        <tbody>
+
+                          {
+                            resultFilter.map((item, index) => (
+                              //resultFilter.filter(item => !item.status).map((item, index) => (
+                              <Trr key={index}>
+                                <Tdd>
+                                  <BtnListOc onClick={() => {
+                                    handleOpenModal();
+                                    setDataCriacao(item.created_at.split('T')[0].split('-').reverse().join('-'));
+                                    setDataVencimento(item.expire.split('-').join('-'));
+                                    setDocumento(item.document_type)
+                                    setCentroResultado(item.centroResultado?.name);
+                                    setEstabelecimento(item.name);
+                                    setValor(formatarNumeroParaPadraoMoeda(item.value));
+                                    setCheck(check);
+                                    setObs(item.observation)
+                                    setIdOc(item.id)
+                                    setNota(item.nota_fiscal)
+                                    setStatus(item.payment_status)
+                                    setFornecedor(item.fornecedor_cc.company_name + " " + "(" + item.fornecedor_cc.cnpj + ")")
+                                    setValorDesconto(item.discount)
+                                    setInsumos(item.insumos)
+                                    setParcelas(item.parcelas)
+                                    setPaymentParcela(item.parcelas.pagamento)
+                                    setValorTotalOcDenconto(item.value_discount)
+                                  }}>
+                                    {item.id}
+                                  </BtnListOc>
+                                </Tdd>
+                                <Tdd>{item.created_at.split('T')[0].split('-').reverse().join('-')}</Tdd>
+                                <Tdd>{item.expire.split('-').join('-')}</Tdd>
+                                <Tdd>{item.fornecedor_cc.company_name}</Tdd>
+                                <Tdd>{item.name}</Tdd>
+                                <Tdd>{item.centroResultado?.name}</Tdd>
+                                <Tdd>{formatarNumeroParaPadraoMoeda(item.value)}</Tdd>
+                                <Tdd>
+                                  {item.status === false ?
+                                    (
+                                      <BtnAprovar onClick={() => aprovarOc(item)}>
+                                        <TdCheck>{"Aprovar"}</TdCheck>
+                                      </BtnAprovar>
+
+                                    ) : (
+                                      <BtnAprovado>
+                                        <TdText>{"Aprovado"}</TdText>
+                                      </BtnAprovado>
+                                    )}
+
+                                </Tdd>
+                              </Trr>
+                            )
+
+                            )
+                          }
+                        </tbody>
+                        <ModalOcEdit
+                          handleCloseModal={handleCloseModal}
+                          isAddModal={isAddModal}
+                          dataCriacao={dataCriacao}
+                          setDataCriacao={setDataCriacao}
+                          dataVencimento={dataVencimento}
+                          setDataVencimento={setDataVencimento}
+                          documento={documento}
+                          setDocumento={setDocumento}
+                          despesa={despesa}
+                          setDespesa={setDespesa}
+                          estabelecimento={estabelecimento}
+                          setEstabelecimento={setEstabelecimento}
+                          centroResultado={centroResultado}
+                          setCentroResultado={setCentroResultado}
+                          valor={valor}
+                          setValor={setValor}
+                          obs={obs}
+                          setObs={setObs}
+                          check={check}
+                          setCheck={setCheck}
+                          idOc={idOc}
+                          idUser={idUser}
+                          nota={nota}
+                          setNota={setNota}
+                          setFornecedor={setFornecedor}
+                          fornecedor={fornecedor}
+                          setValorDesconto={setValorDesconto}
+                          valorDesconto={valorDesconto}
+                          setInsumos={setInsumos}
+                          insumos={insumos}
+                          setParcelas={setParcelas}
+                          parcelas={parcelas}
+                          paymentParcela={paymentParcela}
+                          setPaymentParcela={setPaymentParcela}
+                          ListagemOCCheck={true}
+                          valorTotalOcDenconto={valorTotalOcDenconto}
+
+                        />
+
+                      </Table>
+                    ) :
+                      (resultFilter.length === 0 ? (<></>) :
+                        <AreaImg>
+                          <Image src={imgNotFound} />
+                          <TextImg>Ordem de compra não encontrada !</TextImg>
+                        </AreaImg>
                       )
-                    })}
-                  </SelectVencimento>
-                </AreaSelectVenvimento>
+                  }
+                </div>
 
-                <AreaSelectVenvimento style={{ marginLeft: 30 }}>
-                  <SelectVencimento
-                    name="vencimento"
-                    value={mes}
-                    onChange={(e) => setMes(e.target.value)}
-                  >
-                    <option value="">Mês do vencimento</option>
-                    <option value="01">Janeiro</option>
-                    <option value="02">Fevereiro</option>
-                    <option value="03">Março</option>
-                    <option value="04">Abril</option>
-                    <option value="05">Maio</option>
-                    <option value="06">Junho</option>
-                    <option value="07">Julho</option>
-                    <option value="08">Agosto</option>
-                    <option value="09">Setembro</option>
-                    <option value="10">Outubro</option>
-                    <option value="11">Novembro</option>
-                    <option value="12">Dezembro</option>
-                  </SelectVencimento>
-                </AreaSelectVenvimento>
+                <AreaBtnPagination>
+                  <BtnVoltar onClick={() => voltaPage()}>
+                    <BtnTexto>Voltar</BtnTexto>
+                  </BtnVoltar>
+                  <PageText>{page}</PageText>
+                  <BtnAvancar onClick={() => avancaPage()}>
+                    <BtnTexto>Avançar</BtnTexto>
+                  </BtnAvancar>
+                </AreaBtnPagination>
 
-                <AreaSelectVenvimento style={{ marginLeft: 30 }}>
-                  <SelectVencimento
-                    name="ano"
-                    value={ano}
-                    onChange={(e) => setAno(e.target.value)}
-                  >
-                    <option value="">Ano do vencimento</option>
-                    <option value="2023">2023</option>
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
-                    <option value="2027">2027</option>
-                    <option value="2028">2028</option>
-                    <option value="2029">2029</option>
-                    <option value="2030">2030</option>
-                    <option value="2031">2031</option>
-                    <option value="2032">2032</option>
-                    <option value="2033">2033</option>
-                  </SelectVencimento>
-                </AreaSelectVenvimento>
+              </AreaCampos>
+            </ContentArea>
 
-                <AreaSelectVenvimento style={{ marginLeft: 30 }}>
-                  <SelectVencimento
-                    name="Fornecedor"
-                    value={fornecedorFilter}
-                    onChange={(e) => setFornecedorFilter(e.target.value)}
-                  >
-                    <option value="">Fornecedor</option>
-                    {fornecedorLista?.map((item) => {
-                      return (
-                        // <div key={item.id}>
-                        <option key={item} value={item}>{item}</option>
-                        // </div>
-                      )
-                    })}
-                  </SelectVencimento>
-                </AreaSelectVenvimento>
-              </div>
-              <div style={{ display: "flex", flexDirection: "row", marginTop: 10, backgroundColor: "transparent", marginLeft: 0 }}>
-                <AreaSelectVenvimento style={{ marginLeft: 10, marginTop: 10, height: 45 }}>
-                  <PesquisaInsumo
-                    type={"text"}
-                    placeholder="Pesquise por insumo"
-                    value={pesquisa}
-                    onChange={(e) => setPesquisa(e.target.value)}
-                  />
-                </AreaSelectVenvimento>
-
-                <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 45 }}>
-                  <PesquisaInsumo
-                    type={"text"}
-                    placeholder="Pesquise CNPJ fornecedor"
-                    value={pesquisaCnpj}
-                    onChange={(e) => setPesquisaCnpj(e.target.value)}
-                  />
-                </AreaSelectVenvimento>
-
-                <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 45 }}>
-                  <PesquisaInsumo
-                    type={"text"}
-                    placeholder="Pesquise tipo documento"
-                    value={pesquisaDocType}
-                    onChange={(e) => setPesquisaDocType(e.target.value)}
-                  />
-                </AreaSelectVenvimento>
-
-                <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 45 }}>
-                  <PesquisaInsumo
-                    type={"text"}
-                    placeholder="Pesquise por nota fiscal"
-                    value={pesquisaNota}
-                    onChange={(e) => setPesquisaNota(e.target.value)}
-                  />
-                </AreaSelectVenvimento>
-              </div>
-
-              <div style={{ overflow: "none", overflowY: "auto", display: "flex", flexDirection: "column", marginBottom: 45, margin: "0px 10px 0px 10px" }} >
-
-                {
-                  resultFilter?.length ? (
-                    <Table>
-                      <Thead>
-                        <tr>
-                          <Thh>Número</Thh>
-                          <Thh>Data criação</Thh>
-                          <Thh>Data vencimento</Thh>
-                          <Thh>Fornecedor</Thh>
-                          <Thh>Estabelecimento</Thh>
-                          <Thh>Centro de resultado</Thh>
-                          <Thh>Valor</Thh>
-                          <Thh>Status</Thh>
-                        </tr>
-                      </Thead>
-                      <tbody>
-
-                        {
-                          resultFilter.map((item, index) => (
-                            <Trr key={index}>
-                              <Tdd>
-                                <BtnListOc onClick={() => {
-                                  handleOpenModal();
-                                  setDataCriacao(item.created_at.split('-').reverse().join('-'));
-                                  setDataVencimento(item.expire.split('-').reverse().join('-'));
-                                  setDocumento(item.document_type)
-                                  setCentroResultado(item.centroResultado?.name);
-                                  setEstabelecimento(item.name);
-                                  setValor(item.value);
-                                  setCheck(check);
-                                  setObs(item.observation)
-                                  setIdOc(item.id)
-                                  setNota(item.nota_fiscal)
-                                  setStatus(item.payment_status)
-                                  setFornecedor(item.fornecedor_cc.company_name + " " + "(" + item.fornecedor_cc.cnpj + ")")
-                                  setValorDesconto(item.discount)
-                                  setInsumos(item.insumos)
-                                  setParcelas(item.parcelas)
-                                  setPaymentParcela(item.parcelas.pagamento)
-                                  setBanco(item.nome_banco) //verificar new
-                                  setDataPagamento(item.data_pagamento) // verificar new
-                                }}>
-                                  {item.id}
-                                </BtnListOc>
-                              </Tdd>
-                              <Tdd>{item.created_at.split('T')[0].split('-').reverse().join('-')}</Tdd>
-                              <Tdd>{item.expire.split('-').reverse().join('-')}</Tdd>
-                              <Tdd>{item.fornecedor_cc.company_name}</Tdd>
-
-                              <Tdd>{item.name}</Tdd>
-                              <Tdd>{item.centroResultado?.name}</Tdd>
-                              <Tdd>{(item.value)}</Tdd>
-                              <Tdd>
-                                {item.status === false ?
-                                  (
-                                    <BtnAprovar onClick={() => aprovarOc(item)}>
-                                      <TdCheck>{"Aprovar"}</TdCheck>
-                                    </BtnAprovar>
-
-                                  ) : (
-                                    <BtnAprovado style={{ marginLeft: 50 }}>
-                                      <TdText>{"Aprovado"}</TdText>
-                                    </BtnAprovado>
-                                  )}
-
-                              </Tdd>
-                            </Trr>
-                          )
-
-                          )
-                        }
-                      </tbody>
-                      <ModalOcEdit
-                        handleCloseModal={handleCloseModal}
-                        isAddModal={isAddModal}
-                        dataCriacao={dataCriacao}
-                        setDataCriacao={setDataCriacao}
-                        dataVencimento={dataVencimento}
-                        setDataVencimento={setDataVencimento}
-                        documento={documento}
-                        setDocumento={setDocumento}
-                        despesa={despesa}
-                        setDespesa={setDespesa}
-                        estabelecimento={estabelecimento}
-                        setEstabelecimento={setEstabelecimento}
-                        centroResultado={centroResultado}
-                        setCentroResultado={setCentroResultado}
-                        valor={valor}
-                        setValor={setValor}
-                        obs={obs}
-                        setObs={setObs}
-                        check={check}
-                        setCheck={setCheck}
-                        idOc={idOc}
-                        idUser={idUser}
-                        nota={nota}
-                        setNota={setNota}
-                        setFornecedor={setFornecedor}
-                        fornecedor={fornecedor}
-                        setValorDesconto={setValorDesconto}
-                        valorDesconto={valorDesconto}
-                        setInsumos={setInsumos}
-                        insumos={insumos}
-                        setParcelas={setParcelas}
-                        parcelas={parcelas}
-                        paymentParcela={paymentParcela}
-                        setPaymentParcela={setPaymentParcela}
-                        ListagemOCCheck={true}
-                      />
-
-                    </Table>
-                  ) :
-                    (resultFilter.length === 0 ? (<></>) :
-                      <AreaImg>
-                        <Image src={imgNotFound} />
-                        <TextImg>Ordem de compra não encontrada !</TextImg>
-                      </AreaImg>
-                    )
-                }
-              </div>
-
-              <AreaBtnPagination>
-                <BtnVoltar onClick={() => voltaPage()}>
-                  <BtnTexto>Voltar</BtnTexto>
-                </BtnVoltar>
-                <PageText>{page}</PageText>
-                <BtnAvancar onClick={() => avancaPage()}>
-                  <BtnTexto>Avançar</BtnTexto>
-                </BtnAvancar>
-              </AreaBtnPagination>
-
-            </AreaCampos>
-          </ContentArea>
-
-        </>
-      ) :
-        (
-          <Load />
-        )
-      }
-    </Container >
-  )
-}
-
-export const getServerSideProps = canSSRAuth(async (ctx) => {
-
-  return {
-    props: {}
+          </>
+        ) :
+          (
+            <Load />
+          )
+        }
+      </Container >
+    )
   }
-})
+
+  export const getServerSideProps = canSSRAuth(async (ctx) => {
+
+    return {
+      props: {}
+    }
+  })

@@ -9,11 +9,27 @@ import { ModalOcEdit } from "../../../components/modalOcEdit";
 import Image from "next/image";
 import imgNotFound from '../../../../public/not.png';
 import { toast } from "react-toastify";
+import { api } from "../../../services/apiClient";
 
 
 const ListaDia = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10',
   '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26',
   '27', '28', '29', '30', '31']
+
+const meses = [
+  { valor: '01', nome: 'Janeiro' },
+  { valor: '02', nome: 'Fevereiro' },
+  { valor: '03', nome: 'Março' },
+  { valor: '04', nome: 'Abril' },
+  { valor: '05', nome: 'Maio' },
+  { valor: '06', nome: 'Junho' },
+  { valor: '07', nome: 'Julho' },
+  { valor: '08', nome: 'Agosto' },
+  { valor: '09', nome: 'Setembro' },
+  { valor: '10', nome: 'Outubro' },
+  { valor: '11', nome: 'Novembro' },
+  { valor: '12', nome: 'Dezembro' },
+];
 
 export default function CentroCustoAp() {
   const { user } = useContext(AuthContext)
@@ -35,6 +51,7 @@ export default function CentroCustoAp() {
   const [check, setCheck] = useState(false);
   const [obs, setObs] = useState('');
   const [listaOc, setListaOc] = useState([]);
+  const [pesquisaNota, setPesquisaNota] = useState("");
 
   const [insumos, setInsumos] = useState([]);
   // const [parcelas, setParcelas] = useState([]);
@@ -62,65 +79,97 @@ export default function CentroCustoAp() {
 
 
   useEffect(() => {
-    listaFornecedor();
-    listagemOcPaga();
+    listagemFornecedor();
+    listagemOc();
     setPathName(window.location.pathname) // /CentroCusto/ListagemOcPaga
 
   }, [])
 
-  async function listaFornecedor() {
-    setDomLoaded(true);
-    const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_providers/ ')
+  // async function listaFornecedor() {
+  //   setDomLoaded(true);
+  //   const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_providers/ ')
 
+  //   try {
+  //     const arrayComRepeticao = result.data.list_providers;
+  //     const arraySemRepeticao = [];
+
+  //     arrayComRepeticao.forEach((item) => {
+  //       if (arraySemRepeticao.indexOf(item.company_name) === -1) {
+  //         console.log('id =', item.company_name)
+  //         arraySemRepeticao.push(item.company_name);
+  //       }
+  //     });
+  //     console.log('arrayFilter', arraySemRepeticao)
+
+  //     setFornecedorLista(arraySemRepeticao)
+  //     setDomLoaded(false);
+  //     // console.log("testando listagem fornecedor filter", result.data.list_providers)
+
+  //   } catch (error) {
+  //     console.log('MEU ERRO ListagemFornecedor =', error);
+  //     setDomLoaded(false);
+  //   }
+  // }
+
+  async function listagemFornecedor() {
+    //setDomLoaded(true);
     try {
-      const arrayComRepeticao = result.data.list_providers;
-      const arraySemRepeticao = [];
-
-      arrayComRepeticao.forEach((item) => {
-        if (arraySemRepeticao.indexOf(item.company_name) === -1) {
-          console.log('id =', item.company_name)
-          arraySemRepeticao.push(item.company_name);
-        }
-      });
-      console.log('arrayFilter', arraySemRepeticao)
-
-      setFornecedorLista(arraySemRepeticao)
+      const response = await api.get('/list-fornecedor')
+      //console.log('MEU RESPONSE', response.data)
+      setListaFornecedor(response.data);
       setDomLoaded(false);
-      // console.log("testando listagem fornecedor filter", result.data.list_providers)
 
-    } catch (error) {
-      console.log('MEU ERRO ListagemFornecedor =', error);
-      setDomLoaded(false);
+    } catch (err) {
+      //window.alert('Atenção', 'Erro.')
+      console.log('MEU ERRO Listagem fornecedor =', err);
+      //setDomLoaded(false);
     }
   }
 
-  console.log("fornecedorLista",fornecedorLista)
+  console.log("fornecedorLista", fornecedorLista)
 
 
   const resultFilter = listaOc
-    .filter((valorAtual) => {
+    .filter((oc) => {
+      const installment = oc.parcelas
+      if (!installment.length) {
+        return !installment.length && !dia // quando nao tiver ambos, retorna true(mostra todos) 
+      }
 
-      const newDay = valorAtual.updated_at.split('-').reverse().join('-')
-      const day = newDay.split('-')[0]
-      if (dia === '') return true
-      return day === dia
+      const installmentFilter = installment.some((item) => {
+        const newDay = item.data_vencimento.split('-').join('-')
+        const day = newDay.split('-')[0]
 
+        if (dia === '') return true
+        return day === dia
+      })
+      return installmentFilter
     })
-    .filter((valorAtual) => {
-      const newMonth = valorAtual.updated_at.split('-').reverse().join('-')
-      const month = newMonth.split('-')[1]
-      if (mes === '') return true
-      return month === mes
+    .filter((oc) => {
+      const installment = oc.parcelas
+      if (!installment.length) {
+        return !installment.length && !mes // quando nao tiver, retorna true(mostra todos) 
+      }
+
+      const installmentFilter = installment.some((item) => {
+        const newMonth = item.data_vencimento.split('-').reverse().join('-')
+        const month = newMonth.split('-')[1]
+
+        if (mes === '') return true
+        return month === mes
+      })
+      return installmentFilter
 
     }).filter((valorAtual) => {
+      const newYear = valorAtual.expire.split('-').join('-')
+      const year = newYear.split('-')[2]
 
-      const NewYear = valorAtual.updated_at.split('-').reverse().join('-')
-      const year = NewYear.split('-')[2]
       if (ano === '') return true
       return year === ano
-
-    }).filter((valorAtual) => {
-      const provider = valorAtual.provider?.company_name
+    })
+    .filter((valorAtual) => {
+      const provider = valorAtual.fornecedor_cc.company_name
+      // console.log("Meu Provider aqui...",provider/fornecedor)
 
       if (fornecedorFilter === '') return true
       return fornecedorFilter === provider
@@ -129,7 +178,7 @@ export default function CentroCustoAp() {
       if (!pesquisa) {
         return true
       }
-      const insumoFilter = valorAtual.insumos_fk?.some((insumo) => {
+      const insumoFilter = valorAtual.insumos.some((insumo) => {
         const regex = new RegExp(pesquisa, "gi")
         if (!insumo.name) {
           return false
@@ -139,15 +188,14 @@ export default function CentroCustoAp() {
 
       return insumoFilter
 
-    }).filter((valorAtual) => {
-      if (!pesquisaCnpj) {
-        return true
+    })
+    .filter((valorAtual) => {
+      if (!pesquisaCnpj || !valorAtual.fornecedor_cc) {
+        return true;
       }
-      const regex = new RegExp(pesquisaCnpj, "i")
-
-      return regex.test(valorAtual.provider.cnpj)
-
-    }).filter((valorAtual) => {
+      return valorAtual.fornecedor_cc.cnpj.startsWith(pesquisaCnpj);
+    })
+    .filter((valorAtual) => {
       if (!pesquisaDocType) {
         return true
       }
@@ -155,7 +203,15 @@ export default function CentroCustoAp() {
 
       const regex = new RegExp(texto, "i")
 
-      return regex.test(valorAtual.document_type.name)
+      return regex.test(valorAtual.document_type)
+    }).filter((valorAtual) => {
+      if (!pesquisaNota) {
+        return true
+      }
+
+      const regex = new RegExp(pesquisaNota, "i")
+
+      return regex.test(valorAtual.nota_fiscal)
     })
   // .filter((valorAtual) => {
 
@@ -176,17 +232,31 @@ export default function CentroCustoAp() {
   }
 
 
-  async function listagemOcPaga() {
-    setDomLoaded(true);
-    const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_payed_cost_center/')
+  // async function listagemOcPaga() {
+  //   setDomLoaded(true);
+  //   const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_payed_cost_center/')
 
+  //   try {
+  //     console.log('CAIU NOS 200 OC APROVADAS')
+  //     setListaOc(result.data.list_cost_center)
+  //     setDomLoaded(false);
+  //   } catch (error) {
+  //     console.log('CAIU NO ERRO OC APROVADAS')
+  //     console.log('MEU ERRO ListagemOC =', error);
+  //   }
+  // }
+
+  async function listagemOc() {
+    setDomLoaded(true);
     try {
-      console.log('CAIU NOS 200 OC APROVADAS')
-      setListaOc(result.data.list_cost_center)
+      const response = await api.get(`/list-centro-custo?page=${page}&pageSize=${10}`)
+
+      setListaOc(response.data)
+      setIdUser(user.id)
       setDomLoaded(false);
     } catch (error) {
-      console.log('CAIU NO ERRO OC APROVADAS')
       console.log('MEU ERRO ListagemOC =', error);
+      setDomLoaded(false);
     }
   }
 
@@ -226,6 +296,16 @@ export default function CentroCustoAp() {
     }
   }
 
+  function formatarNumeroParaPadraoMoeda(numero) {
+    // transforma  o numero 1500.5 em um numero = 1.500,50
+    //let num = numero.toFixed(2);
+    let num = parseFloat(numero).toFixed(2);
+    let str = num.toString().replace('.', ',');
+    let partes = str.split(",");
+    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return partes.join(",");
+  }
+
 
   return (
     <Container>
@@ -238,7 +318,7 @@ export default function CentroCustoAp() {
                 <Title>Listagem Ordem Compra Paga</Title>
               </HeaderAreaCampos>
 
-              <div style={{ display: "flex", flexDirection: "row", marginTop: 30, backgroundColor: "transparent", marginLeft: 10 }}>
+              <div style={{ display: "flex", flexDirection: "row", marginTop: 30, marginLeft: 10, marginRight: 10, justifyContent: "space-between" }}>
                 <AreaSelectVenvimento>
                   <SelectVencimento
                     name="dia"
@@ -259,18 +339,11 @@ export default function CentroCustoAp() {
                     onChange={(e) => setMes(e.target.value)}
                   >
                     <option value="">Mês do pagamento</option>
-                    <option value="01">Janeiro</option>
-                    <option value="02">Fevereiro</option>
-                    <option value="03">Março</option>
-                    <option value="04">Abril</option>
-                    <option value="05">Maio</option>
-                    <option value="06">Junho</option>
-                    <option value="07">Julho</option>
-                    <option value="08">Agosto</option>
-                    <option value="09">Setembro</option>
-                    <option value="10">Outubro</option>
-                    <option value="11">Novembro</option>
-                    <option value="12">Dezembro</option>
+                    {meses.map((mes) => (
+                      <option key={mes.valor} value={mes.valor}>
+                        {mes.nome}
+                      </option>
+                    ))}
                   </SelectVencimento>
                 </AreaSelectVenvimento>
 
@@ -280,16 +353,11 @@ export default function CentroCustoAp() {
                     value={ano}
                     onChange={(e) => setAno(e.target.value)}
                   >
-                    <option value="">Ano do pagamento</option>
-                    <option value="2022">2022</option>
-                    <option value="2023">2023</option>
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
-                    <option value="2027">2027</option>
-                    <option value="2028">2028</option>
-                    <option value="2029">2029</option>
-                    <option value="2030">2030</option>
+                    <option value="">Ano do vencimento</option>
+                    {[...Array(21)].map((_, i) => {
+                      const year = 2022 + i;
+                      return <option key={year} value={year}>{year}</option>;
+                    })}
                   </SelectVencimento>
                 </AreaSelectVenvimento>
 
@@ -310,8 +378,8 @@ export default function CentroCustoAp() {
                   </SelectVencimento>
                 </AreaSelectVenvimento>
               </div>
-              <div style={{ display: "flex", flexDirection: "row", marginTop: 10, backgroundColor: "transparent", marginLeft: 0 }}>
-                <AreaSelectVenvimento style={{ marginLeft: 10, marginTop: 10, height: 45 }}>
+              <div style={{ display: "flex", flexDirection: "row", marginTop: 10, backgroundColor: "transparent", marginLeft: 0, marginRight: 10, justifyContent: "space-between" }}>
+                <AreaSelectVenvimento style={{ marginLeft: 10, marginTop: 10, height: 35 }}>
                   <PesquisaInsumo
                     type={"text"}
                     placeholder="Pesquise por insumo"
@@ -320,7 +388,7 @@ export default function CentroCustoAp() {
                   />
                 </AreaSelectVenvimento>
 
-                <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 45 }}>
+                <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 35 }}>
                   <PesquisaInsumo
                     type={"text"}
                     placeholder="Pesquise CNPJ fornecedor"
@@ -329,7 +397,7 @@ export default function CentroCustoAp() {
                   />
                 </AreaSelectVenvimento>
 
-                <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 45 }}>
+                <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 35 }}>
                   <PesquisaInsumo
                     type={"text"}
                     placeholder="Pesquise tipo documento"
@@ -337,9 +405,18 @@ export default function CentroCustoAp() {
                     onChange={(e) => setPesquisaDocType(e.target.value)}
                   />
                 </AreaSelectVenvimento>
+
+                <AreaSelectVenvimento style={{ marginLeft: 30, marginTop: 10, height: 35 }}>
+                  <PesquisaInsumo
+                    type={"text"}
+                    placeholder="Pesquise por nota fiscal"
+                    value={pesquisaNota}
+                    onChange={(e) => setPesquisaNota(e.target.value)}
+                  />
+                </AreaSelectVenvimento>
               </div>
 
-              <div style={{ overflow: "none", display: "flex", flexDirection: "column", overflowY: "auto", marginBottom: 0, margin: "0px 10px 0px 10px" }} >
+              <div style={{overflow: "none", display: "flex", flexDirection: "column", overflowY: "auto", margin: "30px 10px 0px 10px" }} >
                 {
                   resultFilter.length ? (
                     <Table>
@@ -348,52 +425,49 @@ export default function CentroCustoAp() {
                           <Thh>Número</Thh>
                           <Thh>Data criação</Thh>
                           <Thh>Data vencimento</Thh>
+                          <Thh>Fornecedor</Thh>
                           <Thh>Data pagamento</Thh>
-                          <Thh>Documento</Thh>
-                          {/* <Thh>Despesa</Thh> */}
-                          <Thh>Estabelecimento</Thh>
+                          {/* <Thh>Estabelecimento</Thh> */}
                           <Thh>Centro de resultado</Thh>
                           <Thh>Valor</Thh>
                           <Thh>Status</Thh>
                         </Trr>
                         {
-                          resultFilter.map((item, index) => (
+                          resultFilter.filter(item => item.payment_status).map((item, index) => (
+                            //resultFilter.map((item, index) => (
                             // setInsumos(item.insumos_fk),
                             console.log('resultFilter', resultFilter),
                             <Trr key={index}>
                               <Tdd>
                                 <BtnListOc onClick={() => {
                                   handleOpenModal();
-                                  setDataCriacao(item.created_at.split('-').reverse().join('-'));
-                                  setDataVencimento(item.expire_at.split('-').reverse().join('-'));
-                                  setDocumento(item.document_type.name)
-                                  setCentroResultado(item.contract_reference.name);
+                                  setDataCriacao(item.created_at.split('T')[0].split('-').reverse().join('-'));
+                                  setDataVencimento(item.expire.split('-').join('-'));
+                                  setDocumento(item.document_type)
+                                  setCentroResultado(item.centroResultado?.name);
                                   setEstabelecimento(item.name);
-                                  setValor(item.value);
+                                  setValor(formatarNumeroParaPadraoMoeda(item.value));
                                   setCheck(check);
                                   setObs(item.observation)
                                   setIdOc(item.id)
                                   setNota(item.nota_fiscal)
                                   setStatus(item.payment_status)
-                                  setFornecedor(item.provider.company_name + " " + "(" + item.provider.cnpj + ")")
+                                  setFornecedor(item.fornecedor_cc.company_name + " " + "(" + item.fornecedor_cc.cnpj + ")")
                                   setValorDesconto(item.discount)
-                                  setInsumos(item.insumos_fk)
-                                  setParcelas(item.installment_fk)
-                                  setPaymentParcela(item.installment_fk.payment)
-                                  setBanco(item.nome_banco)
-                                  setDataPagamento(item.data_pagamento)
+                                  setInsumos(item.insumos)
+                                  setParcelas(item.parcelas)
+                                  setPaymentParcela(item.parcelas.pagamento)
                                 }}>
                                   {item.id}
                                 </BtnListOc>
                               </Tdd>
-                              <Tdd>{item.created_at.split('-').reverse().join('-')}</Tdd>
-                              <Tdd>{item.expire_at.split('-').reverse().join('-')}</Tdd>
-                              <Tdd>{item.updated_at.split('-').reverse().join('-')}</Tdd>
-                              <Tdd>{item.document_type.name}</Tdd>
-                              {/* <Tdd>{item.expense.name}</Tdd> */}
-                              <Tdd>{item.name}</Tdd>
-                              <Tdd>{item.contract_reference.name}</Tdd>
-                              <Tdd>{(item.value)}</Tdd>
+                              <Tdd>{item.created_at.split('T')[0].split('-').reverse().join('-')}</Tdd>
+                              <Tdd>{item.expire.split('-').join('-')}</Tdd>
+                              <Tdd>{item.fornecedor_cc.company_name}</Tdd>
+                              <Tdd>{item.date_payment}</Tdd>
+                              {/* <Tdd>{item.name}</Tdd> */}
+                              <Tdd>{item.centroResultado?.name}</Tdd>
+                              <Tdd>{formatarNumeroParaPadraoMoeda(item.value)}</Tdd>
                               <Tdd>
                                 {item.payment_status === false ?
                                   (

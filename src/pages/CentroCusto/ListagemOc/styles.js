@@ -202,7 +202,6 @@ export const Table = styled.table`
   border-spacing: 0;
   border-collapse: collapse;
   overflow: hidden;
-  margin: 15px 0;
   font-size: 0.9em;
   font-family:'Roboto', sans-serif;
   min-width: 400px;
@@ -212,29 +211,15 @@ export const Table = styled.table`
   text-align: center;
   margin-bottom: 55px;
 
+
 `;
 
-export const Table2 = styled.table`
-  border-radius: 5px;
-  border-spacing: 0;
-  border-collapse: collapse;
-  overflow: hidden;
-  margin: 25px 0px;
-  font-size: 0.9em;
-  font-family:'Roboto', sans-serif;
-  min-width: 400px;
-  width: 100%;
-  height: 100%;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-  text-align: center;
-`;
-
-// export const Table = styled.table`
+// export const Table2 = styled.table`
 //   border-radius: 5px;
 //   border-spacing: 0;
 //   border-collapse: collapse;
 //   overflow: hidden;
-//   margin: 0px 0;
+//   margin: 25px 0px;
 //   font-size: 0.9em;
 //   font-family:'Roboto', sans-serif;
 //   min-width: 400px;
@@ -242,34 +227,10 @@ export const Table2 = styled.table`
 //   height: 100%;
 //   box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
 //   text-align: center;
-//   margin-bottom: 0px;
 // `;
 
-export const Trr = styled.tr`
-  padding: 5px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.15)
-`;
-export const Thead = styled.thead`
-  padding: 5px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.15)
-`;
 
-export const Tdd = styled.td`
-  padding: 5px 10px;
-  width: 100px;
-  border-bottom: 0.5px solid #dddddd;
-`;
 
-export const TdCheck = styled.td`
-  padding: 5px 10px;
-  border-bottom: 0.5px solid #dddddd;
-`;
-
-export const Thh = styled.td`
-  padding: 5px 12px;
-  background-color: #0472a4;
-  color:#fafafa;
-`;
 
 export const AreaContainerSelect = styled.div`
 display: flex;
@@ -279,26 +240,32 @@ justify-content: flex-start;
 
 
 export const AreaSelectVenvimento = styled.div`
-margin-bottom: 5px;
-width:240px;
-height: 40px;
-align-items: center;
-justify-content: center;
-display: flex;
-border-radius:0.2rem;
-border: 0.5px solid #18181898;
+  margin-bottom: 0px;
+  width:260px;
+  height: 35px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  border-radius:0.2rem;
+  border: 0.5px solid #18181898;
+  transition: border 0.1s ease;
+
+  &:hover {
+    border: 2px solid #18181898; 
+  }
 `;
 
 export const SelectVencimento = styled.select`
-height: 33px;
-width: 220px;
-align-items: center;
-justify-content: center;
-color: #18181898;
-border: none;
-font-style: normal;
-font-family: "Roboto", sans-serif;
-font-weight: 400;
+  height: 33px;
+  width: 220px;
+  align-items: center;
+  justify-content: center;
+  color: #18181898;
+  border: none;
+  font-style: normal;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  background: transparent;
 `;
 
 export const AreaImg = styled.div`
@@ -327,44 +294,81 @@ align-items: center;
 cursor: pointer;
 `;
 
-export const BtnAprovar = styled.button`
-align-items: center;
-justify-content: center;
-/* display: flex;
-flex-direction: row; */
-cursor: pointer;
-
-&:hover {
-  transform: scale(1.05);
-  transition: all 0.5s ease-in-out;
-  filter: brightness(0.9);
-  /* background-color: #33cc95; */
-}
-
-
-
-span {
-  margin-left: 10px;
-}
+export const TdCheck = styled.span`
+  /* padding: 5px 10px; */
+  /* border-bottom: 0.5px solid #dddddd; */
 `;
 
-export const BtnAprovado = styled.div`
+export const Trr = styled.tr`
+  padding: 5px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  
+`;
+export const Thead = styled.thead`
+  padding: 5px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15)
+`;
+
+
+export const Tdd = styled.td`
+  position: relative;
+  padding: 5px 10px;
+  width: 100px;
+  border-bottom: 0.5px solid #dddddd;
+  /* border: 1px solid #f12; */
+`;
+
+export const Thh = styled.td`
+  padding: 5px 12px;
+  background-color: #0472a4;
+  color:#fafafa;
+`;
+
+
+export const BtnAprovar = styled.button`
+  position: absolute;
+  top: 50%; // top e left movem o botão para que o canto superior esquerdo dele esteja no centro do Tdd
+  left: 50%; 
+  transform: translate(-50%, -50%); //move o botão para cima e para a esquerda por metade de sua própria altura e largura
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5rem;
+  height: 2rem;
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(1.05);
+    transition: all 0.5s ease-in-out;
+    filter: brightness(0.9);
+    background-color: #33cc95;
+    border-radius: 2px;
+    border-color: #33cc95;
+  }
+`;
+
+export const BtnAprovado = styled.button`
+position: absolute;
+top: 50%; // top e left movem o botão para que o canto superior esquerdo dele esteja no centro do Tdd
+left: 50%; 
+transform: translate(-50%, -50%);
+display: flex;
 align-items: center;
 justify-content: center;
-width: 6rem;
-display: flex;
-flex-direction: row;
+width: 5rem;
+height: 2rem;
 background-color: #0472a4;
 border-radius: 2px;
+/* margin-left: 50px; */
+border: none;
 
 span {
-  margin-left: 10px;
+  margin-left: 0px;
 }
 
 `;
 
-export const TdText = styled.td`
-  padding: 5px 10px;
+export const TdText = styled.span`
   color: #fff;
 `;
 
@@ -489,17 +493,47 @@ export const LineDocColumn = styled.div`
 `;
 
 export const PesquisaInsumo = styled.input`
-height: 33px;
-width: 220px;
+height: 30px;
+width: 255px;
 padding: 0 0.5rem;
 border-radius: 0.25rem;
 font-weight: 400;
 font-size: 1rem;
 color: #18181898;
+/* background-color: #f12; */
 
 border: none;
 font-style: normal;
 font-family: "Roboto", sans-serif;
 font-weight: 400;
+box-shadow: 0 0 0 0px transparent;
+/* transition: box-shadow 2s ease; */
+
+&::placeholder {
+    opacity: 0.5; /* Ajuste este valor para controlar a transparência */
+    font-size: 14px;
+  }
+
+
+  &:hover {
+    animation: hoverEffect 0.5s forwards;
+    border-radius: 1px;
+  }
+
+  @keyframes hoverEffect {
+    0% { box-shadow: 0 0 0 0px transparent; }
+    100% { box-shadow: 0 0 0 1.5px #969696; }
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px #969696;
+    border-radius: 1px; 
+  }
+
+  &::selection {
+    background-color: #969696; /* Cor preta mais escura */
+    color: white;
+    border-radius: 1px;
+  }
 `;
 

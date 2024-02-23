@@ -8,6 +8,7 @@ import CurrencyInput from 'react-currency-input-field';
 import { useReactToPrint } from "react-to-print";
 import { FiPrinter } from 'react-icons/fi'
 import { OcContext } from "../../contexts/OcContext";
+import { api } from "../../services/apiClient";
 
 
 export function ModalOcEdit(props) {
@@ -35,8 +36,8 @@ export function ModalOcEdit(props) {
   const listaParcelasLocal = props?.parcelas
 
   // console.log("novaListaParcelas", novaListaParcelas)
-  console.log("listaParcelasLocal", listaParcelasLocal)
-  console.log("listaParcelas", listaParcelas)
+  //console.log("listaParcelasLocal", listaParcelasLocal)
+  //console.log("listaParcelas", listaParcelas)
 
   useEffect(() => {
     setPathName(window.location.pathname)
@@ -71,9 +72,9 @@ export function ModalOcEdit(props) {
 
 
   function ordenaArray() {
-    console.log('listaParcelas', listaParcelas)
+    //console.log('listaParcelas', listaParcelas)
     if (checkOc) {
-      console.log("caiu no if", checkOc)
+      //console.log("caiu no if", checkOc)
       if (listaParcelasLocal) {
 
         const novaListaLocal = listaParcelasLocal?.sort((a, b) => {
@@ -89,7 +90,7 @@ export function ModalOcEdit(props) {
 
     }
     else if (listaParcelas) {
-      console.log("caiu no else if")
+      //console.log("caiu no else if")
       const novaLista = listaParcelas?.sort((a, b) => {
         if (a.id < b.id) {
           return -1
@@ -102,60 +103,19 @@ export function ModalOcEdit(props) {
     }
   }
 
-  // async function editParcela(item) {
-  //   const data = {
-  //     id: item.id,
-  //     numero_parcela: item.number,
-  //     valor_parcela: item.value,
-  //     data_vencimento: item.date_expire,
-  //     pagamento: !item.payment,
-  //   }
-
-  //   if (!(user.category?.name === 'Desenvolvimento') && !(user.category?.name === 'Master')) {
-  //     toast.error('Usuário não autorizado!')
-  //     return
-  //   }
-  //   try {
-  //     const result = await axios.put('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/edit_installment/', data)
-  //     console.log('caiu aqui no EditCr', result);
-  //     // window.location.reload();
-  //     //  props.handleCloseModal();
-  //     toast.success('Pagamento parcela alterado com sucesso!');
-
-  //   } catch (error) {
-  //     console.log('MEU ERRO EditCr =', error);
-  //     toast.error('Erro ao editar ordem de compra!');
-
-  //   }
-  // }
-
-  console.log("Banco MD", props.banco)
-
   async function editOc(event) {
     event.preventDefault()
+
     const data = {
       id: props.idOc,
-      name: "",
-      document_type: "",
-      contract_reference: "",
-      observation: "",
-      discount: "",
-      provider: "",
-      nota_fiscal: props.nota,
-      status: false,
       payment_status: false,
-      expire: props.dataVencimento.split('-').reverse().join('-'),
-      // user: `${props.idUser}`,
-      user: props.idUser,
-      value: props.valor,
-      nome_banco: props.banco,
-	    data_pagamento: props.dataPagamento
+      nota_fiscal: props.nota,
     }
 
-     console.log('passei aqui', props.idUser)
+    console.log('passei aqui', user)
 
-    if (user.category?.name === 'Desenvolvimento' || user.category?.name === 'Master') {
-      const result = await axios.put('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/edit_cost_center/', data)
+    if (user.userCategory?.name === 'Desenvolvimento' || user.userCategory?.name === 'admin') {
+      const result = await api.put(`/update-centro-custo`, data) 
 
       try {
         console.log('caiu aqui no EditCr', result);
@@ -177,12 +137,13 @@ export function ModalOcEdit(props) {
     event.preventDefault()
     const data = {
       id: props.idOc.toString(),
-      name: props.estabelecimento
+      // name: props.estabelecimento
     }
-    console.log('passei aqui', data)
+    //console.log('passei aqui Delete OC = = =', data)
+    //console.log('passei aqui Usuario OC = = =', user)
 
-    if (user.category?.name === 'Desenvolvimento' || user.category?.name === 'Master') {
-      const result = await axios.delete('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/delete_cost_center/', { data })
+    if (user.userCategory?.name === 'Desenvolvimento' || user.userCategory?.name === 'admin') {
+      const result = await api.delete(`/remove-centro-custo?id=${data.id}`)
 
       try {
         console.log('caiu aqui no EditCr', result);
@@ -209,6 +170,21 @@ export function ModalOcEdit(props) {
   const obsPrint = props.obs
   const insumosPrint = props.insumos
   const parcelasPrint = props.parcelas
+
+  const valorDesconto = props.valorDesconto
+  const valorTotalOcDenconto = props.valorTotalOcDenconto
+
+  console.log("insumosPrint MODAL = = = =",valorTotalOcDenconto)
+
+  function formatarNumeroParaPadraoMoeda(numero) {
+    // transforma  o numero 1500.5 em um numero = 1.500,50
+    //let num = numero.toFixed(2);
+    let num = parseFloat(numero).toFixed(2);
+    let str = num.toString().replace('.', ',');
+    let partes = str.split(",");
+    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return partes.join(",");
+  }
 
 
   const ComponentToPrint = React.forwardRef((props, ref) => {
@@ -282,12 +258,12 @@ export function ModalOcEdit(props) {
 
                 <LineDocColumn>
                   <TitleDoc>Vlr Unit</TitleDoc>
-                  <DescriptionDoc style={{ marginLeft: 0 }}>{"R$ " + formatReal(item.unity_value)}</DescriptionDoc>
+                  <DescriptionDoc style={{ marginLeft: 0 }}>{"R$ " + formatarNumeroParaPadraoMoeda(item.unity_value)}</DescriptionDoc>
                 </LineDocColumn>
 
                 <LineDocColumn>
                   <TitleDoc>Total</TitleDoc>
-                  <DescriptionDoc style={{ marginLeft: 0 }}>{"R$ " + formatReal(item.total_value)}</DescriptionDoc>
+                  <DescriptionDoc style={{ marginLeft: 0 }}>{"R$ " + formatarNumeroParaPadraoMoeda(item.total_value)}</DescriptionDoc>
                 </LineDocColumn>
               </div>
 
@@ -302,7 +278,7 @@ export function ModalOcEdit(props) {
         <TitleDoc style={{ marginBottom: 20 }}>VENCIMENTOS</TitleDoc>
         {
           parcelasPrint?.map((item) => {
-            console.log("parcelas Print ====",parcelasPrint)
+            // console.log("parcelas Print ====",parcelasPrint)
             return (
               <div key={item.id} style={{ display: 'flex', flexDirection: 'row', justifyContent: "flex-start" }}>
                 <LineDocColumn style={{ marginRight: 70 }}>
@@ -335,13 +311,13 @@ export function ModalOcEdit(props) {
     );
   });
 
-  const Example = () => {
+  const Imprimir = () => {
     const componentRef = useRef();
     const handlePrint = useReactToPrint({
       content: () => componentRef.current,
     });
 
-    const imprimir = () => {
+    const imprimirModal = () => {
       handlePrint();
       props.handleCloseModal();
     }
@@ -352,7 +328,7 @@ export function ModalOcEdit(props) {
           <ComponentToPrint ref={componentRef} />
         </div>
         {/* <div style={{display:"flex", flexDirection:"row"}}> */}
-        <BtnImprimir onClick={imprimir}>
+        <BtnImprimir onClick={imprimirModal}>
           <FiPrinter size={20} />
           <h3>Imprimir</h3>
         </BtnImprimir>
@@ -385,6 +361,16 @@ export function ModalOcEdit(props) {
     return value;
   }
 
+  function formatarNumeroParaPadraoMoeda(numero) {
+    // transforma  o numero 1500.5 em um numero = 1.500,50
+    //let num = numero.toFixed(2);
+    let num = parseFloat(numero).toFixed(2);
+    let str = num.toString().replace('.', ',');
+    let partes = str.split(",");
+    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return partes.join(",");
+  }
+
   return (
     <Modal
       ariaHideApp={false}
@@ -413,11 +399,6 @@ export function ModalOcEdit(props) {
               <div>
                 <h1>Data de vencimento</h1>
                 <p>{props.dataVencimento}</p>
-                {/* <InputModalOc
-                type="date"
-                value={props.dataVencimento.split('-').reverse().join('-')}
-                onChange={(e) => props.setDataVencimento(e.target.value.split('-').reverse().join('-'))}
-              /> */}
               </div>
             </div>
 
@@ -438,7 +419,7 @@ export function ModalOcEdit(props) {
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", width: 250, alignItems: "center", }}>
+            <div style={{ display: "flex", flexDirection: "column", width: 250, alignItems: "center",paddingRight: 60 }}>
               <div>
                 <h1>Centro de resultado</h1>
                 <p>{props.centroResultado}</p>
@@ -578,12 +559,12 @@ export function ModalOcEdit(props) {
 
                           <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
                             <TitleList style={{ marginRight: 10, marginLeft: 10 }}>Valor Unidade:</TitleList>
-                            <TextList>{formatReal(item.unity_value)}</TextList>
+                            <TextList>{formatarNumeroParaPadraoMoeda(item.unity_value)}</TextList>
                           </div>
 
                           <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
                             <TitleList style={{ marginRight: 10, marginLeft: 10 }}>Valor Total:</TitleList>
-                            <TextList>{formatReal(item.total_value)}</TextList>
+                            <TextList>{formatarNumeroParaPadraoMoeda(item.total_value)}</TextList>
                           </div>
                         </div>
                       </li>
@@ -611,7 +592,7 @@ export function ModalOcEdit(props) {
                 ) :
                   (
                     novaListaParcelas?.map((item) => {
-                      console.log('novaListaParcelas Modal', novaListaParcelas)
+                     // console.log('novaListaParcelas Modal = = =', novaListaParcelas)
                       return (
                         <div key={item.id}>
                           <div style={{
@@ -619,25 +600,25 @@ export function ModalOcEdit(props) {
                             border: "1.5px solid #0c4663", borderRadius: 5, alignItems: "center"
                           }}>
                             <CardHeader>
-                              <TextData style={{ color: "#f0f0f0", fontSize: "1rem" }}>{item.number}º Parcela</TextData>
+                              <TextData style={{ color: "#f0f0f0", fontSize: "1rem" }}>{item.numero_parcela}º Parcela</TextData>
                             </CardHeader>
                             <CardFooter>
-                              <TextData>{item.data_vencimento.split('-').reverse().join('-')}</TextData>
-                              <TextData>{parseFloat(item.value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TextData>
+                              <TextData>{item.data_vencimento.split('-').join('-')}</TextData>
+                              <TextData>{parseFloat(item.valor_parcela).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TextData>
 
-                              {item.payment ?
+                              {item.pagamento ?
                                 (
                                   <BtnParcelaPaga onClick={() =>
                                     props.disableAction ? undefined : editParcela(item)
                                   }>
-                                    <TextData>{!item.payment ? "Pagar ?" : "Pago !"}</TextData>
+                                    <TextData>{!item.pagamento ? "Pagar ?" : "Pago !"}</TextData>
                                   </BtnParcelaPaga>
 
                                 ) : (
                                   <BtnParcelaNaoPaga onClick={() =>
                                     props.disableAction ? undefined : editParcela(item)
                                   }>
-                                    <TextData>{!item.payment ? "Pagar ?" : "Pago !"}</TextData>
+                                    <TextData>{!item.pagamento ? "Pagar ?" : "Pago !"}</TextData>
                                   </BtnParcelaNaoPaga>
                                 )}
 
@@ -666,7 +647,7 @@ export function ModalOcEdit(props) {
             </BtnExluir>
 
 
-            <Example />
+            <Imprimir />
           </div>
 
         </div>

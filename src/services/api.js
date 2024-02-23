@@ -13,7 +13,7 @@ export function setupAPIClient(ctx = undefined) {
   });
 
   api.interceptors.response.use((response) => {
-    console.log(response);
+    //console.log(response);
     return response;
   }, (error) => {
     if (error.response.status === 401) {

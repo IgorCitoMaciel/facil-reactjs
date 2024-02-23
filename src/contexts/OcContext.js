@@ -2,6 +2,7 @@ import {createContext, useState, useEffect, useContext} from 'react';
 import axios from 'axios';
 import { AuthContext } from './AuthContext';
 import { toast } from 'react-toastify';
+import { api } from '../services/apiClient';
 
 export const OcContext = createContext({
   listagemOcAprovada:()=>{}, 
@@ -25,35 +26,39 @@ export function OcContextProvider ({children}) {
 
   async function editParcela(item) {
     const data = {
-      id: item.id,
-      numero_parcela: item.number,
-      valor_parcela: item.value,
-      data_vencimento: item.date_expire,
-      pagamento: !item.payment,
+      id: item.centroCustoId, // id do centro de custo
+      parcelaId : Number(item.id),
+      pagamento : !item.pagamento
     }
 
-    if (!(user.category?.name === 'Desenvolvimento') && !(user.category?.name === 'Master')) {
-      toast.error('Usuário não autorizado!')
-      return
-    }
+    console.log('Meu data EditarParcela', data, user)
+
+    // if (user.userCategory?.name !== 'Desenvolvimento' && user.userCategory?.name !== 'admin') {
+    //   toast.error('Usuário não autorizado!')
+    //   return
+    // }
     try {
-      const result = await axios.put('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/edit_installment/', data)
+      const result = await api.put('/update-centro-custo', data)
       await listagemOcAprovada();
-
-      console.log('result', result)
-
-      // setParcelas(parcelas => parcelas.map((parcela)=> {
-      //   if(parcela.id === item.id){
-      //     return { ...parcela, payment: !parcela.payment }
-      //   }
-      //   return parcela
-      // }))
       
-      setParcelas(parcelas => parcelas.map((parcela)=> {
+      setParcelas(parcelas => parcelas.map((parcela, index)=> {
         if(parcela.id === item.id){
-          return result.data.installment[0]
+          // Cria uma cópia profunda de result.data.parcelas[index]
+          //Essa linha de código está criando uma cópia profunda do objeto result.data.parcelas[index].
+
+          //Em JavaScript, quando você atribui um objeto a uma nova variável, a nova variável aponta para o mesmo objeto,
+          // não uma nova cópia dele. Isso significa que se você alterar o objeto original, a nova variável também será alterada,
+          //e vice-versa. Isso é chamado de "passagem por referência".
+          //No entanto, às vezes você quer criar uma nova cópia de um objeto 
+          //que não está ligada ao objeto original. Isso é chamado de "cópia profunda". 
+          //Uma maneira de fazer isso em JavaScript é usando JSON.stringify para converter 
+          //o objeto em uma string JSON, e então JSON.parse para converter a string de volta
+          //em um novo objeto.
+          const updatedParcela = JSON.parse(JSON.stringify(result.data.parcelas[index]));
+          console.log("updatedParcela = = =",updatedParcela)
+          return updatedParcela;
         }
-        console.log("parcela SETPARCELAS",result.data.installment[0])
+        console.log("parcela SETPARCELAS",result.data.parcelas[index])
         return parcela
       }))
       toast.success('Pagamento parcela alterado com sucesso!');
@@ -66,16 +71,26 @@ export function OcContextProvider ({children}) {
   }
 
   async function listagemOcAprovada() {
-    const result = await axios.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_cost_center/?page=' + `${page}` + '&status=True')
+    // const result = await api.get('https://app-facil-1cc4efc41cdc.herokuapp.com/finance/list_all_cost_center/?page=' + `${page}` + '&status=True')
 
+    // try {
+    //   console.log('CAIU NOS 200 OC APROVADAS', result.data.list_cost_center[1].installment_fk )
+    //   setListaOc(result.data.list_cost_center)
+    //   setMaxPage(result.data.pagination.pages)
+    //   setCount(result.data.pagination.count)
+    // } catch (error) {
+    //   console.log('CAIU NO ERRO OC APROVADAS')
+    //   console.log('MEU ERRO ListagemOC =', error);
+    // }
     try {
-      console.log('CAIU NOS 200 OC APROVADAS', result.data.list_cost_center[1].installment_fk )
-      setListaOc(result.data.list_cost_center)
-      setMaxPage(result.data.pagination.pages)
-      setCount(result.data.pagination.count)
+      const response = await api.get(`/list-centro-custo?page=${page}&pageSize=${10}`)
+
+      setListaOc(response.data)
+      setIdUser(user.id)
+      setDomLoaded(false);
     } catch (error) {
-      console.log('CAIU NO ERRO OC APROVADAS')
       console.log('MEU ERRO ListagemOC =', error);
+      // setDomLoaded(false);
     }
   }
 

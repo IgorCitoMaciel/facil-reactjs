@@ -80,7 +80,7 @@ export function ModalInsumoAdd(props) {
       name: insumoNome,
       und: unidade,
       material_type: tipoMaterial,
-      amount: quantidade,
+      amount: Number(quantidade),
       unity_value: formatValorStringEmNumero(valorUnidade),
       total_value: formatValorStringEmNumero(valorTotal)
     }

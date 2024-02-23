@@ -60,6 +60,7 @@ export function AuthProvider({ children }) {
         email,
         password,
       })
+      setUser(response.data)
       console.log("meu data login", response.data)
 
       const { token } = response.data;
@@ -69,7 +70,7 @@ export function AuthProvider({ children }) {
         path: "/" // todos os caminhos terao acesso ao cookies
       })
 
-      setUser(response.data)
+      //setUser(response.data)
 
       api.defaults.headers.common['Authorization'] = `Bearer ${token}` // a api utilizara nosso token
       // Router.push('/CentroCusto/OrdemCompra')

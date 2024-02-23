@@ -162,28 +162,49 @@ font-family: "Roboto", sans-serif;
 `;
 
 export const PesquisaInsumo = styled.input`
-height: 33px;
-width: 220px;
+height: 30px;
+width: 255px;
 padding: 0 0.5rem;
 border-radius: 0.25rem;
 font-weight: 400;
 font-size: 1rem;
 color: #18181898;
+/* background-color: #f12; */
 
 border: none;
 font-style: normal;
 font-family: "Roboto", sans-serif;
 font-weight: 400;
-`;
+box-shadow: 0 0 0 0px transparent;
+/* transition: box-shadow 2s ease; */
 
-// export const Table = styled.table`
-// border-collapse: collapse;
-// margin: 25px 0;
-// font-size: 0.9em;
-// font-family: sans-serif;
-// min-width: 400px;
-// box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-// `;
+&::placeholder {
+    opacity: 0.5; /* Ajuste este valor para controlar a transparência */
+    font-size: 14px;
+  }
+
+
+  &:hover {
+    animation: hoverEffect 0.5s forwards;
+    border-radius: 1px;
+  }
+
+  @keyframes hoverEffect {
+    0% { box-shadow: 0 0 0 0px transparent; }
+    100% { box-shadow: 0 0 0 1.5px #969696; }
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px #969696;
+    border-radius: 1px; 
+  }
+
+  &::selection {
+    background-color: #969696; /* Cor preta mais escura */
+    color: white;
+    border-radius: 1px;
+  }
+`;
 
 export const TheadTr = styled.tr`
 background-color: #0472a4;
@@ -261,28 +282,33 @@ flex-direction: row;
 justify-content: flex-start;
 `;
 
-
 export const AreaSelectVenvimento = styled.div`
-margin-bottom: 20px;
-width:240px;
-height: 40px;
-align-items: center;
-justify-content: center;
-display: flex;
-border-radius:0.2rem;
-border: 0.5px solid #18181898;
+  margin-bottom: 0px;
+  width:260px;
+  height: 35px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  border-radius:0.2rem;
+  border: 0.5px solid #18181898;
+  transition: border 0.1s ease;
+
+  &:hover {
+    border: 2px solid #18181898; 
+  }
 `;
 
 export const SelectVencimento = styled.select`
-height: 33px;
-width: 220px;
-align-items: center;
-justify-content: center;
-color: #18181898;
-border: none;
-font-style: normal;
-font-family: "Roboto", sans-serif;
-font-weight: 400;
+  height: 33px;
+  width: 220px;
+  align-items: center;
+  justify-content: center;
+  color: #18181898;
+  border: none;
+  font-style: normal;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  background: transparent;
 `;
 
 export const AreaImg = styled.div`

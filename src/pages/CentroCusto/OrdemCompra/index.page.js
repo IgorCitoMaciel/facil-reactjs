@@ -350,6 +350,7 @@ export default function CentroCusto() {
     numero_parcela: "1",
     valor_parcela: valorDesconto ? valorDesconto : formatValorStringEmNumero(valor),
     data_vencimento: dataVencimento1.split('-').join('-'),
+    data_pagamento: "",
     pagamento: false,
   }]
 
@@ -365,7 +366,7 @@ export default function CentroCusto() {
     status: false,
     user: user.id,
     value: valorDesconto ? valorDesconto : `${valor}`,
-    discount: porcentagem,
+    discount: Number(porcentagem),
     insumos: insumoOc,
     parcelas: listaParcelas ? listaParcelas : parcelaUnicaTabela,
     nota_fiscal: "",
@@ -387,34 +388,18 @@ export default function CentroCusto() {
       data_vencimento: dataVencimento1.split('-').reverse().join('-'),
       pagamento: false,
     }]
-    //console.log('parcelaUnica z z z z z z',listaParcelas, (parcelaUnica))
 
-    // let data = {
-    //   name: estabelecimento,
-    //   document_type: documento,  // id do documento
-    //   fornecedor: fornecedor,
-    //   expire: dataVencimento.split('-').reverse().join('-'), // data de vencimento
-    //   observation: observacao,
-    //   contract_reference: centroResultado, // id do centro de resultado
-    //   status: false,
-    //   user: user.id.toString(),
-    //   value: valorDesconto ? formatDesconto(valorDesconto) : `${formatValorRequest(valor)}`,
-    //   discount: porcentagem,
-    //   insumos: insumoOc,
-    //   parcelas: listaParcelas ? listaParcelas : parcelaUnica,
-    //   nota_fiscal: "",
-    // }
     let data = {
       name: estabelecimento,
       document_type: documento,  // id do documento
-      fornecedor: fornecedor,
+      fornecedor: Number(fornecedor),
       expire: dataVencimento, // data de vencimento
       observation: observacao,
-      contract_reference: centroResultado, // id do centro de resultado
+      contract_reference: Number(centroResultado), // id do centro de resultado
       status: false,
       user: user.id,
       value: valorDesconto ? valorDesconto : formatValorStringEmNumero(valor),
-      discount: porcentagem,
+      discount: Number(porcentagem),
       insumos: insumoOc,
       // parcelas: listaParcelas ? listaParcelas : parcelaUnica,
       parcelas: listaParcelas ? listaParcelas : formatValorStringEmNumero(parcelaUnicaTabela[0].valor_parcela),
@@ -425,27 +410,27 @@ export default function CentroCusto() {
     // console.log('Meu data Parcelas Request Criar OC -- -- -- -- --', data.parcelas, parcelaUnica[0].valor_parcela )
     // console.log('Meu data Parcela Unica Request Criar OC -- -- -- -- --', parcelaUnica[0].valor_parcela  )
 
-    // if (dataVencimento && documento && centroResultado && estabelecimento && valor) {
+    if (dataVencimento && documento && centroResultado && estabelecimento && valor) {
 
-    //   const result = await api.post('/centro-custo', data)
+      const result = await api.post('/centro-custo', data)
 
-    //   try {
-    //     toast.success('Ordem de Compra criada com sucesso!');
-    //     console.log('Lista Despesa =', result.data.list_expense);
-    //     //setListaDespesa(result.data.list_cost_center);
-    //     limpaCampos();
-    //     setLoad(false);
-    //   } catch (error) {
-    //     toast.error('Erro em criar Ordem de Compra!');
-    //     console.log('MEU ERRO Add OC =', error);
-    //     setLoad(false)
-    //   }
+      try {
+        toast.success('Ordem de Compra criada com sucesso!');
+        console.log('Lista Despesa =', result.data.list_expense);
+        //setListaDespesa(result.data.list_cost_center);
+        limpaCampos();
+        setLoad(false);
+      } catch (error) {
+        toast.error('Erro em criar Ordem de Compra!');
+        console.log('MEU ERRO Add OC =', error);
+        setLoad(false)
+      }
 
-    // } else {
-    //   toast.error('Preencha todos os campos!');
-    //   setLoad(false)
+    } else {
+      toast.error('Preencha todos os campos!');
+      setLoad(false)
 
-    // }
+    }
   }
 
 function arredondarNumero(num) {
@@ -639,12 +624,14 @@ function formatValorStringEmNumero(valor) {
               numero_parcela: "1",
               valor_parcela: (valorVencimento1),
               data_vencimento: dataVencimento1.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "2",
               valor_parcela: (valorVencimento2),
               data_vencimento: dataVencimento2.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             }
           ]
@@ -656,18 +643,21 @@ function formatValorStringEmNumero(valor) {
               numero_parcela: "1",
               valor_parcela: (valorVencimento1),
               data_vencimento: dataVencimento1.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "2",
               valor_parcela: (valorVencimento2),
               data_vencimento: dataVencimento2.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "3",
               valor_parcela: (valorVencimento3),
               data_vencimento: dataVencimento3.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
           ]
@@ -679,24 +669,28 @@ function formatValorStringEmNumero(valor) {
               numero_parcela: "1",
               valor_parcela: (valorVencimento1),
               data_vencimento: dataVencimento1.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "2",
               valor_parcela: (valorVencimento2),
               data_vencimento: dataVencimento2.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "3",
               valor_parcela: (valorVencimento3),
               data_vencimento: dataVencimento3.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "4",
               valor_parcela: (valorVencimento4),
               data_vencimento: dataVencimento4.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
           ]
@@ -708,30 +702,35 @@ function formatValorStringEmNumero(valor) {
               numero_parcela: "1",
               valor_parcela: (valorVencimento1),
               data_vencimento: dataVencimento1.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "2",
               valor_parcela: (valorVencimento2),
               data_vencimento: dataVencimento2.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "3",
               valor_parcela: (valorVencimento3),
               data_vencimento: dataVencimento3.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "4",
               valor_parcela: (valorVencimento4),
               data_vencimento: dataVencimento4.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "5",
               valor_parcela: (valorVencimento5),
               data_vencimento: dataVencimento5.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
           ]
@@ -743,36 +742,42 @@ function formatValorStringEmNumero(valor) {
               numero_parcela: "1",
               valor_parcela: (valorVencimento1),
               data_vencimento: dataVencimento1.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "2",
               valor_parcela: (valorVencimento2),
               data_vencimento: dataVencimento2.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "3",
               valor_parcela: (valorVencimento3),
               data_vencimento: dataVencimento3.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "4",
               valor_parcela: (valorVencimento4),
               data_vencimento: dataVencimento4.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "5",
               valor_parcela: (valorVencimento5),
               data_vencimento: dataVencimento5.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             },
             {
               numero_parcela: "6",
               valor_parcela: (valorVencimento6),
               data_vencimento: dataVencimento6.split('-').join('-'),
+              data_pagamento: "",
               pagamento: false,
             }
           ]
@@ -883,6 +888,9 @@ function formatValorStringEmNumero(valor) {
   //console.log("listaParcelas",listaParcelas)
  // console.log("valor parcela",valorDaParcela)
  //console.log("insumoOc  - - - - - - - -",insumoOc)
+// const gg2 = "10"
+
+ //console.log("Teste GG2 = = = = = = = = =", Number(gg2))
 
 
   return (
@@ -984,7 +992,7 @@ function formatValorStringEmNumero(valor) {
                             <option value="">Selecione o tipo</option>
                             {listaDoc.map((item) => {
                               return (
-                                <option key={item.id} value={item.id}>{item.name}</option>
+                                <option key={item.id} value={item.name}>{item.name}</option>
                               )
                             })}
                           </SelectCC>

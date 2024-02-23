@@ -15,10 +15,10 @@
     "static/development/_middlewareManifest.js"
   ],
   "pages": {
-    "/Ateste": [
+    "/CentroCusto/ListagemOc": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/Ateste.js"
+      "static/chunks/pages/CentroCusto/ListagemOc.js"
     ],
     "/CentroCusto/OrdemCompra": [
       "static/chunks/webpack.js",

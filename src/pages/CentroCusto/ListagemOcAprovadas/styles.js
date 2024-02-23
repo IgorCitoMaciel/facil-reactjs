@@ -207,7 +207,7 @@ export const Table = styled.table`
   border-spacing: 0;
   border-collapse: collapse;
   overflow: hidden;
-  margin: 15px 0;
+  /* margin: 15px 0; */
   font-size: 0.9em;
   font-family:'Roboto', sans-serif;
   min-width: 400px;
@@ -225,9 +225,11 @@ export const Trr = styled.tr`
 `;
 
 export const Tdd = styled.td`
+  position: relative;
   padding: 5px 10px;
   width: 100px;
   border-bottom: 0.5px solid #dddddd;
+  /* border: 1px solid #f12; */
 `;
 
 export const TdCheck = styled.h5`
@@ -249,26 +251,32 @@ justify-content: flex-start;
 
 
 export const AreaSelectVenvimento = styled.div`
-margin-bottom: 5px;
-width:240px;
-height: 40px;
-align-items: center;
-justify-content: center;
-display: flex;
-border-radius:0.2rem;
-border: 0.5px solid #18181898;
+  margin-bottom: 0px;
+  width:260px;
+  height: 35px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  border-radius:0.2rem;
+  border: 0.5px solid #18181898;
+  transition: border 0.1s ease;
+
+  &:hover {
+    border: 2px solid #18181898; 
+  }
 `;
 
 export const SelectVencimento = styled.select`
-height: 33px;
-width: 220px;
-align-items: center;
-justify-content: center;
-color: #18181898;
-border: none;
-font-style: normal;
-font-family: "Roboto", sans-serif;
-font-weight: 400;
+  height: 33px;
+  width: 220px;
+  align-items: center;
+  justify-content: center;
+  color: #18181898;
+  border: none;
+  font-style: normal;
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  background: transparent;
 `;
 
 export const AreaImg = styled.div`
@@ -298,10 +306,17 @@ cursor: pointer;
 `;
 
 export const BtnAprovar = styled.button`
+position: absolute;
+top: 50%; // top e left movem o botão para que o canto superior esquerdo dele esteja no centro do Tdd
+left: 50%; 
+transform: translate(-50%, -50%);
+display: flex;
 align-items: center;
 justify-content: center;
-/* display: flex;
-flex-direction: row; */
+width: 5rem;
+height: 2rem;
+//display: flex;
+flex-direction: row;
 cursor: pointer;
 
 &:hover {
@@ -311,26 +326,24 @@ cursor: pointer;
   /* background-color: #33cc95; */
 }
 
-span {
-  margin-left: 10px;
-}
 `;
 
-export const BtnAprovado = styled.div`
-align-items: center;
-justify-content: center;
-//width: 6rem;
+export const BtnAprovado = styled.button`
+position: absolute;
+top: 50%; // top e left movem o botão para que o canto superior esquerdo dele esteja no centro do Tdd
+left: 50%; 
+transform: translate(-50%, -50%);
 display: flex;
-flex-direction: row;
 align-items: center;
 justify-content: center;
+width: 5rem;
+height: 2rem;
+flex-direction: row;
 background-color: #0472a4;
 border-radius: 2px;
+align-items: center;
+display: flex;
 
-
-span {
-  margin-left: 2000px;
-}
 
 `;
 
@@ -339,9 +352,6 @@ export const TdText = styled.td`
   color: #fff;
   //border-bottom: 0.5px solid #dddddd;
 `;
-
-
-
 
 
 
@@ -481,16 +491,46 @@ export const BtnImprimir = styled.button`
 `;
 
 export const PesquisaInsumo = styled.input`
-height: 33px;
-width: 220px;
+height: 30px;
+width: 255px;
 padding: 0 0.5rem;
 border-radius: 0.25rem;
 font-weight: 400;
 font-size: 1rem;
 color: #18181898;
+/* background-color: #f12; */
 
 border: none;
 font-style: normal;
 font-family: "Roboto", sans-serif;
 font-weight: 400;
+box-shadow: 0 0 0 0px transparent;
+/* transition: box-shadow 2s ease; */
+
+&::placeholder {
+    opacity: 0.5; /* Ajuste este valor para controlar a transparência */
+    font-size: 14px;
+  }
+
+
+  &:hover {
+    animation: hoverEffect 0.5s forwards;
+    border-radius: 1px;
+  }
+
+  @keyframes hoverEffect {
+    0% { box-shadow: 0 0 0 0px transparent; }
+    100% { box-shadow: 0 0 0 1.5px #969696; }
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px #969696;
+    border-radius: 1px; 
+  }
+
+  &::selection {
+    background-color: #969696; /* Cor preta mais escura */
+    color: white;
+    border-radius: 1px;
+  }
 `;
